@@ -40,6 +40,11 @@ services:
       DB_PASSWORD: allogaz
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      # Charge aussi les données de démonstration (dépôts à Cocody, Yopougon, Marcory)
+      FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/demo
+      JWT_SECRET: ${JWT_SECRET:-dev-only-jwt-secret-change-me-0123456789abcdef}
+      HASH_PEPPER: ${HASH_PEPPER:-dev-only-pepper-change-me}
+      PAYMENT_FAKE_AUTO_SUCCEED: ${PAYMENT_FAKE_AUTO_SUCCEED:-true}
     ports:
       - "8080:8080"
 
