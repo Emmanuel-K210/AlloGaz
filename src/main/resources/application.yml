@@ -55,6 +55,16 @@ allogaz:
   security:
     # Poivre des hachages de codes courts (OTP, code de livraison). À surcharger en production.
     hash-pepper: ${HASH_PEPPER:dev-only-pepper-change-me}
+  search:
+    max-radius-meters: ${SEARCH_MAX_RADIUS_M:30000}
+    candidate-limit: 50
+    weights:
+      distance: 0.50
+      availability: 0.25
+      rating: 0.15
+      acceptance: 0.10
+      half-score-distance-meters: 2000
+      out-of-radius-factor: 0.6
   identity:
     jwt:
       # Au moins 32 octets. À surcharger en production.
