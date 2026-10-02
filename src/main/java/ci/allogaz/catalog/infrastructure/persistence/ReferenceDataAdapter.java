@@ -52,13 +52,15 @@ class ReferenceDataAdapter implements CategoryRepository, ProductRepository {
         e.name = p.name();
         e.brand = p.brand();
         e.company = p.company();
-        e.bottleColor = p.bottleColor();
+        e.bottleColors = p.bottleColors().toArray(String[]::new);
+        e.appearance = p.appearance();
         e.capacityGrams = p.capacityGrams();
         e.active = p.active();
         return toDomain(products.save(e));
     }
 
     private static Product toDomain(ProductJpaEntity e) {
-        return new Product(e.id, e.categoryId, e.name, e.brand, e.company, e.bottleColor, e.capacityGrams, e.active);
+        return new Product(e.id, e.categoryId, e.name, e.brand, e.company, List.of(e.bottleColors), e.appearance,
+                e.capacityGrams, e.active);
     }
 }

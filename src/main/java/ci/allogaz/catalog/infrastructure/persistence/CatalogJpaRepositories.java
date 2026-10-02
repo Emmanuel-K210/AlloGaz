@@ -16,15 +16,15 @@ interface CategoryJpaRepository extends JpaRepository<CategoryJpaEntity, UUID> {
 
 interface ProductJpaRepository extends JpaRepository<ProductJpaEntity, UUID> {
 
-    @Query("""
-            select p from ProductJpaEntity p
-            where p.active = true
-              and (:categoryId is null or p.categoryId = :categoryId)
-              and (:brand is null or lower(p.brand) = lower(cast(:brand as string)))
-              and (:company is null or lower(p.company) = lower(cast(:company as string)))
-              and (:bottleColor is null or lower(p.bottleColor) = lower(cast(:bottleColor as string)))
-              and (:capacityGrams is null or p.capacityGrams = :capacityGrams)
-            order by p.company, p.brand, p.capacityGrams
+    @Query(nativeQuery = true, value = """
+            select * from products p
+            where p.active
+              and (cast(:categoryId as uuid) is null or p.category_id = cast(:categoryId as uuid))
+              and (cast(:brand as text) is null or lower(p.brand) = lower(cast(:brand as text)))
+              and (cast(:company as text) is null or lower(p.company) = lower(cast(:company as text)))
+              and (cast(:bottleColor as text) is null or cast(:bottleColor as text) = any (p.bottle_colors))
+              and (cast(:capacityGrams as integer) is null or p.capacity_grams = cast(:capacityGrams as integer))
+            order by p.company, p.brand, p.capacity_grams
             """)
     List<ProductJpaEntity> search(UUID categoryId, String brand, String company, String bottleColor,
             Integer capacityGrams);

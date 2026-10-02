@@ -75,12 +75,14 @@ public final class CatalogDtos {
     }
 
     public record OfferResponse(UUID id, UUID sellerId, UUID productId, String productName, String brand,
-                                String company, String bottleColor, Integer capacityGrams, Long refillPrice,
+                                String company, List<String> bottleColors, String appearance,
+                                Integer capacityGrams, Long refillPrice,
                                 Long purchasePrice, int stock, boolean active) {
 
         static OfferResponse from(OfferDetails d) {
             return new OfferResponse(d.offer().id(), d.offer().sellerId(), d.product().id(), d.product().name(),
-                    d.product().brand(), d.product().company(), d.product().bottleColor(), d.product().capacityGrams(), d.offer().refillPrice(),
+                    d.product().brand(), d.product().company(), d.product().bottleColors(), d.product().appearance(),
+                    d.product().capacityGrams(), d.offer().refillPrice(),
                     d.offer().purchasePrice(), d.offer().stock(), d.offer().active());
         }
     }
@@ -90,6 +92,7 @@ public final class CatalogDtos {
 
     public record ProductRequest(@NotBlank String categorySlug, @NotBlank @Size(max = 150) String name,
                                  @Size(max = 80) String brand, @Size(max = 120) String company,
-                                 @Size(max = 40) String bottleColor, @Positive Integer capacityGrams) {
+                                 List<@Size(max = 40) String> bottleColors, @Size(max = 255) String appearance,
+                                 @Positive Integer capacityGrams) {
     }
 }

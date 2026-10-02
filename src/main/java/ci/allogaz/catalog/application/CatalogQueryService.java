@@ -46,7 +46,8 @@ public class CatalogQueryService {
             Integer capacityGrams) {
         UUID categoryId = categorySlug == null ? null : categories.findBySlug(categorySlug)
                 .orElseThrow(() -> new NotFoundException("CATEGORY_NOT_FOUND", "Catégorie introuvable.")).id();
-        return products.findActive(new ProductFilter(categoryId, brand, company, bottleColor, capacityGrams))
+        return products.findActive(new ProductFilter(categoryId, brand, company, Product.normalizeColor(bottleColor),
+                        capacityGrams))
                 .stream().map(ProductView::from).toList();
     }
 
@@ -59,13 +60,13 @@ public class CatalogQueryService {
     @CacheEvict(cacheNames = PRODUCTS_CACHE, allEntries = true)
     @Transactional
     public ProductView createProduct(String categorySlug, String name, String brand, String company,
-            String bottleColor, Integer capacityGrams) {
+            List<String> bottleColors, String appearance, Integer capacityGrams) {
         UUID categoryId = categories.findBySlug(categorySlug)
                 .orElseThrow(() -> new NotFoundException("CATEGORY_NOT_FOUND", "Catégorie introuvable.")).id();
         if (name == null || name.isBlank()) {
             throw new DomainException("INVALID_PRODUCT", "Le nom du produit est obligatoire.");
         }
         return ProductView.from(products.save(new Product(UUID.randomUUID(), categoryId, name.strip(), brand, company,
-                bottleColor, capacityGrams, true)));
+                bottleColors, appearance, capacityGrams, true)));
     }
 }

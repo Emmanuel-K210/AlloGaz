@@ -53,7 +53,7 @@ public class AdminCatalogController {
     @PostMapping("/products")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductView createProduct(@Valid @RequestBody ProductRequest r) {
-        return catalog.createProduct(r.categorySlug(), r.name(), r.brand(), r.company(), r.bottleColor(),
+        return catalog.createProduct(r.categorySlug(), r.name(), r.brand(), r.company(), r.bottleColors(), r.appearance(),
                 r.capacityGrams());
     }
 }

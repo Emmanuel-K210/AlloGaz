@@ -2,6 +2,9 @@ package ci.allogaz.catalog.infrastructure.persistence;
 
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -25,8 +28,13 @@ class ProductJpaEntity {
     /** Société de provenance (marketeur). */
     String company;
 
-    @Column(name = "bottle_color")
-    String bottleColor;
+    /** Couleurs en circulation, en minuscules. */
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "bottle_colors", nullable = false, columnDefinition = "text[]")
+    String[] bottleColors = new String[0];
+
+    /** Détails visuels libres (capsule, nuance, séries). */
+    String appearance;
 
     @Column(name = "capacity_grams")
     Integer capacityGrams;

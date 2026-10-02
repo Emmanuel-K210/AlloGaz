@@ -2,6 +2,10 @@ package ci.allogaz.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -70,7 +74,8 @@ class SellerCatalogTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.brand").value("TotalEnergies"))
                 .andExpect(jsonPath("$.capacityGrams").value(12500))
                 .andExpect(jsonPath("$.company").value("TotalEnergies Marketing Côte d'Ivoire"))
-                .andExpect(jsonPath("$.bottleColor").value("bleu"))
+                .andExpect(jsonPath("$.bottleColors[0]").value("bleu"))
+                .andExpect(jsonPath("$.appearance").value(containsString("capsule")))
                 .andExpect(jsonPath("$.refillPrice").value(5200));
 
         mvc.perform(get("/api/v1/catalog/sellers/" + sellerId))
@@ -80,19 +85,29 @@ class SellerCatalogTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void products_can_be_filtered_by_brand_and_size() throws Exception {
+    void products_can_be_filtered_by_brand_size_company_and_color() throws Exception {
         mvc.perform(get("/api/v1/catalog/products").param("category", "gaz-butane").param("sizeKg", "12.5"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3));
+                .andExpect(jsonPath("$.length()").value(6));
         mvc.perform(get("/api/v1/catalog/products").param("brand", "oryx").param("sizeKg", "6"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].name").value("Bouteille Oryx 6 kg"))
                 .andExpect(jsonPath("$[0].company").value("Oryx Energies Côte d'Ivoire"))
-                .andExpect(jsonPath("$[0].bottleColor").value("orange"));
-        mvc.perform(get("/api/v1/catalog/products").param("company", "petro ivoire").param("color", "VERT"))
+                .andExpect(jsonPath("$[0].bottleColors").value(contains("gris", "bleu")));
+        // Vert : seulement Corlay
+        mvc.perform(get("/api/v1/catalog/products").param("color", "Vert"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].brand").value(everyItem(is("Corlay"))))
                 .andExpect(jsonPath("$.length()").value(2));
+        // Bleu : la couleur seule ne suffit pas, d'où le filtre société
+        mvc.perform(get("/api/v1/catalog/products").param("color", "bleu").param("sizeKg", "12.5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(5));
+        mvc.perform(get("/api/v1/catalog/products").param("company", "pétro ivoire").param("color", "BLEU"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].appearance").value(containsString("marine")));
     }
 
     @Test

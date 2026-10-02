@@ -1,6 +1,7 @@
 package ci.allogaz.catalog.application;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.UUID;
 
 import ci.allogaz.catalog.domain.Category;
@@ -20,12 +21,12 @@ public final class CatalogViews {
     }
 
     public record ProductView(UUID id, UUID categoryId, String name, String brand, String company,
-                              String bottleColor, Integer capacityGrams)
+                              List<String> bottleColors, String appearance, Integer capacityGrams)
             implements Serializable {
 
         static ProductView from(Product p) {
-            return new ProductView(p.id(), p.categoryId(), p.name(), p.brand(), p.company(), p.bottleColor(),
-                    p.capacityGrams());
+            return new ProductView(p.id(), p.categoryId(), p.name(), p.brand(), p.company(), p.bottleColors(),
+                    p.appearance(), p.capacityGrams());
         }
     }
 }
