@@ -55,6 +55,13 @@ allogaz:
   security:
     # Poivre des hachages de codes courts (OTP, code de livraison). À surcharger en production.
     hash-pepper: ${HASH_PEPPER:dev-only-pepper-change-me}
+  payment:
+    # fake : passerelle factice (CinetPay / PayDunya à brancher plus tard)
+    provider: ${PAYMENT_PROVIDER:fake}
+    fake:
+      auto-succeed: ${PAYMENT_FAKE_AUTO_SUCCEED:true}
+    # Commission de la plateforme en points de base (500 = 5 %)
+    commission-rate-bps: ${COMMISSION_RATE_BPS:500}
   search:
     max-radius-meters: ${SEARCH_MAX_RADIUS_M:30000}
     candidate-limit: 50
