@@ -1,0 +1,7 @@
+allogaz:
+  scheduling:
+    enabled: false
+logging:
+  level:
+    org.testcontainers: WARN
+    com.github.dockerjava: WARN

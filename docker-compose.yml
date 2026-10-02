@@ -1,0 +1,52 @@
+# Lancement complet : docker compose up --build
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: allogaz
+      POSTGRES_USER: allogaz
+      POSTGRES_PASSWORD: allogaz
+      TZ: Africa/Abidjan
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U allogaz -d allogaz"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/allogaz
+      DB_USER: allogaz
+      DB_PASSWORD: allogaz
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Charge aussi les données de démonstration (dépôts à Cocody, Yopougon, Marcory)
+      FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/demo
+      JWT_SECRET: ${JWT_SECRET:-dev-only-jwt-secret-change-me-0123456789abcdef}
+      HASH_PEPPER: ${HASH_PEPPER:-dev-only-pepper-change-me}
+      PAYMENT_FAKE_AUTO_SUCCEED: ${PAYMENT_FAKE_AUTO_SUCCEED:-true}
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
