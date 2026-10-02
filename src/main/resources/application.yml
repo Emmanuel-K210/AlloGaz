@@ -55,6 +55,13 @@ allogaz:
   security:
     # Poivre des hachages de codes courts (OTP, code de livraison). À surcharger en production.
     hash-pepper: ${HASH_PEPPER:dev-only-pepper-change-me}
+  ordering:
+    seller-response-timeout: ${ORDER_SELLER_RESPONSE_TIMEOUT:PT10M}
+    auto-validation-delay: ${ORDER_AUTO_VALIDATION_DELAY:PT24H}
+    max-delivery-code-attempts: ${ORDER_MAX_DELIVERY_CODE_ATTEMPTS:5}
+    batch-size: 100
+    expiration-check-interval: PT30S
+    auto-validation-check-interval: PT5M
   payment:
     # fake : passerelle factice (CinetPay / PayDunya à brancher plus tard)
     provider: ${PAYMENT_PROVIDER:fake}

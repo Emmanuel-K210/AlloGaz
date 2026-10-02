@@ -16,6 +16,12 @@ public class TestBeans {
 
     @Bean
     @Primary
+    public MutableClock mutableClock() {
+        return new MutableClock(java.time.ZoneId.of("Africa/Abidjan"));
+    }
+
+    @Bean
+    @Primary
     public RecordingSmsSender recordingSmsSender() {
         return new RecordingSmsSender();
     }
