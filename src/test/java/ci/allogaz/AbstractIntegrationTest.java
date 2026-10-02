@@ -57,6 +57,9 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected AccessTokenIssuer accessTokenIssuer;
 
+    @Autowired
+    protected ci.allogaz.support.Fixtures fixtures;
+
     /** Numéro mobile unique par test (évite les collisions de compteurs Redis). */
     protected static String uniquePhone() {
         return "+22507" + String.format("%08d", PHONE_SEQUENCE.incrementAndGet() % 100_000_000L);
