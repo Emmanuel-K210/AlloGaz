@@ -23,6 +23,7 @@ import ci.allogaz.shared.domain.DomainException;
 import ci.allogaz.shared.domain.ForbiddenException;
 import ci.allogaz.shared.domain.NotFoundException;
 import ci.allogaz.shared.domain.TooManyRequestsException;
+import ci.allogaz.shared.domain.UnauthorizedException;
 
 /** Traduit les erreurs en réponses RFC 9457 (application/problem+json) avec un code métier stable. */
 @RestControllerAdvice
@@ -37,6 +38,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             case ForbiddenException ignored -> HttpStatus.FORBIDDEN;
             case ConflictException ignored -> HttpStatus.CONFLICT;
             case TooManyRequestsException ignored -> HttpStatus.TOO_MANY_REQUESTS;
+            case UnauthorizedException ignored -> HttpStatus.UNAUTHORIZED;
             default -> HttpStatus.UNPROCESSABLE_CONTENT;
         };
         return problem(status, ex.code(), ex.getMessage());
