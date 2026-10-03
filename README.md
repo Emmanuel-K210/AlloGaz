@@ -110,6 +110,12 @@ Les erreurs suivent la RFC 9457 (`application/problem+json`) avec un champ `code
 | `GET /catalog/sellers/{id}` | Fiche d'un dépôt vérifié et ses offres |
 | `GET /search/sellers?lat&lon&productId&brand&company&color&sizeKg&type=REFILL\|PURCHASE&limit` | Dépôts vérifiés et ouverts, classés par score |
 
+Un dépôt « échange toutes marques » (`universalExchange`, réglable via `POST/PUT /seller/profile`) reprend une
+bouteille vide de n'importe quelle société en échange d'une des siennes. Il ressort donc dans `/search/sellers`
+même quand `brand`/`company`/`color`/`productId` ne correspond pas à ce qu'il vend : seuls la contenance
+(`sizeKg`) et le type (`REFILL`/`PURCHASE`) restent filtrants pour lui. Un dépôt classique n'est remonté que
+s'il vend effectivement la société/couleur demandée.
+
 **Vendeur** (rôle `SELLER`, sauf la création du dépôt)
 
 | | |

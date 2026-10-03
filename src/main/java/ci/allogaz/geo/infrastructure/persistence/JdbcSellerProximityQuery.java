@@ -22,17 +22,28 @@ import ci.allogaz.shared.domain.GeoPoint;
 @Repository
 class JdbcSellerProximityQuery implements SellerProximityQuery {
 
-    /** Filtre d'offre partagé par les deux requêtes (alias o = offre, p = produit). */
+    /**
+     * Filtre d'offre partagé par les deux requêtes (alias o = offre, p = produit, s = dépôt).
+     * La contenance et le type de vente s'appliquent toujours ; la société/marque/couleur de la bouteille
+     * (ce que l'acheteur a en main) ne s'applique qu'aux dépôts qui ne font PAS l'échange toutes marques :
+     * un point d'échange universel doit remonter même s'il ne vend pas la société recherchée, puisqu'il la
+     * reprend quand même en échange d'une autre.
+     */
     private static final String OFFER_FILTER = """
             o.active AND p.active
-            AND (CAST(:productId AS uuid) IS NULL OR p.id = CAST(:productId AS uuid))
-            AND (CAST(:brand AS text) IS NULL OR lower(p.brand) = lower(CAST(:brand AS text)))
-            AND (CAST(:company AS text) IS NULL OR lower(p.company) = lower(CAST(:company AS text)))
-            AND (CAST(:color AS text) IS NULL OR lower(CAST(:color AS text)) = ANY (p.bottle_colors))
             AND (CAST(:capacity AS integer) IS NULL OR p.capacity_grams = CAST(:capacity AS integer))
             AND (CAST(:saleType AS text) IS NULL
                  OR (CAST(:saleType AS text) = 'REFILL' AND o.refill_price IS NOT NULL)
                  OR (CAST(:saleType AS text) = 'PURCHASE' AND o.purchase_price IS NOT NULL))
+            AND (
+                  s.universal_exchange
+                  OR (
+                       (CAST(:productId AS uuid) IS NULL OR p.id = CAST(:productId AS uuid))
+                       AND (CAST(:brand AS text) IS NULL OR lower(p.brand) = lower(CAST(:brand AS text)))
+                       AND (CAST(:company AS text) IS NULL OR lower(p.company) = lower(CAST(:company AS text)))
+                       AND (CAST(:color AS text) IS NULL OR lower(CAST(:color AS text)) = ANY (p.bottle_colors))
+                     )
+                )
             """;
 
     private static final String SELLERS_SQL = """
@@ -61,7 +72,7 @@ class JdbcSellerProximityQuery implements SellerProximityQuery {
     private static final String OFFERS_SQL = """
             SELECT o.id, o.seller_id, p.id AS product_id, p.name, p.brand, p.company, p.bottle_colors, p.appearance,
                    p.capacity_grams, o.refill_price, o.purchase_price, o.stock
-            FROM seller_offers o JOIN products p ON p.id = o.product_id
+            FROM seller_offers o JOIN products p ON p.id = o.product_id JOIN seller_profiles s ON s.id = o.seller_id
             WHERE o.seller_id IN (:sellerIds) AND %s
             ORDER BY o.stock DESC, p.name
             """.formatted(OFFER_FILTER);
