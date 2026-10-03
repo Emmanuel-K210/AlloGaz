@@ -61,7 +61,7 @@ public class Fixtures {
     public Seller verifiedSeller(String name, double lat, double lon, int radiusMeters, DeliveryPolicy policy) {
         User user = user();
         SellerProfile profile = profiles.apply(user.id(),
-                new SellerProfileCommand(name, "Abidjan", new GeoPoint(lat, lon), radiusMeters, List.of(), policy));
+                new SellerProfileCommand(name, "Abidjan", new GeoPoint(lat, lon), radiusMeters, List.of(), policy, false));
         profiles.verify(profile.id());
         profile = profiles.setAcceptingOrders(user.id(), true);
         return new Seller(users.findById(user.id()).orElseThrow(), profile);

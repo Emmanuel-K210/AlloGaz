@@ -18,6 +18,7 @@ export function SellerOnboardingPage() {
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('FIXED_FEE');
   const [deliveryFee, setDeliveryFee] = useState(500);
   const [deliveryRadiusMeters, setDeliveryRadiusMeters] = useState(5000);
+  const [universalExchange, setUniversalExchange] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +36,7 @@ export function SellerOnboardingPage() {
         deliveryMode,
         deliveryFee: deliveryMode === 'FIXED_FEE' ? deliveryFee : 0,
         openingHours: [],
+        universalExchange,
       });
       applyRoleLocally('SELLER');
       await refreshUser().catch(() => {});
@@ -107,6 +109,24 @@ export function SellerOnboardingPage() {
             />
           </div>
         )}
+        <label className="field">
+          <span className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+            <input
+              type="checkbox"
+              checked={universalExchange}
+              onChange={(e) => setUniversalExchange(e.target.checked)}
+              style={{ marginTop: 4 }}
+            />
+            <span>
+              <strong>Échange toutes marques</strong>
+              <br />
+              <span className="muted" style={{ fontSize: 14 }}>
+                Coche si tu reprends une bouteille vide même si ce n'est pas la société que tu vends (ex. une Oryx
+                vide contre une Shell pleine).
+              </span>
+            </span>
+          </span>
+        </label>
         <button className="btn block" type="submit" disabled={busy}>
           {busy ? 'Envoi…' : 'Ouvrir mon dépôt'}
         </button>

@@ -7,7 +7,7 @@ import java.util.UUID;
 public record SellerCandidate(UUID sellerId, String shopName, String address, double latitude, double longitude,
                               double distanceMeters, int deliveryRadiusMeters, String deliveryMode, long deliveryFee,
                               long ratingSum, long ratingCount, long ordersDecided, long ordersAccepted,
-                              List<MatchingOffer> offers) {
+                              List<MatchingOffer> offers, boolean universalExchange) {
 
     public record MatchingOffer(UUID offerId, UUID productId, String productName, String brand, String company,
                                 List<String> bottleColors, String appearance, Integer capacityGrams, Long refillPrice, Long purchasePrice,

@@ -66,14 +66,14 @@ class ProximitySearchTest extends AbstractIntegrationTest {
         // Non vérifié
         User pendingUser = fixtures.user();
         SellerProfile pending = profiles.apply(pendingUser.id(), new SellerProfileCommand("Non vérifié", null,
-                new GeoPoint(LAT, LON), 3_000, List.of(), fixed()));
+                new GeoPoint(LAT, LON), 3_000, List.of(), fixed(), false));
 
         // Fermé à cette heure-ci : seul créneau demain
         var ferme = fixtures.verifiedSeller("Fermé", LAT, LON - 0.002, 3_000, fixed());
         fixtures.offer(ferme, Fixtures.ORYX_12KG, 5_000L, null, 8);
         var tomorrow = LocalDateTime.now(ZoneId.of("Africa/Abidjan")).plusDays(1).getDayOfWeek();
         profiles.update(ferme.user().id(), new SellerProfileCommand("Fermé", null, new GeoPoint(LAT, LON - 0.002),
-                3_000, List.of(new OpeningSlot(tomorrow, LocalTime.of(0, 0), LocalTime.of(23, 59))), fixed()));
+                3_000, List.of(new OpeningSlot(tomorrow, LocalTime.of(0, 0), LocalTime.of(23, 59))), fixed(), false));
     }
 
     private static DeliveryPolicy fixed() {

@@ -46,6 +46,11 @@ INSERT INTO seller_profiles (id, user_id, shop_name, address, location, delivery
      0, FALSE, 'PENDING', 'PICKUP_ONLY', 0, now())
 ON CONFLICT (id) DO NOTHING;
 
+-- Yop Gaz Service est un point d'échange toutes marques (reprend Oryx, Corlay ou Petroci quelle que soit
+-- la bouteille d'origine) : utile pour tester la recherche quand l'acheteur n'a pas la bonne société sur place.
+UPDATE seller_profiles SET universal_exchange = TRUE
+WHERE id = '5e000000-0000-0000-0000-000000000002';
+
 -- Horaires (1 = lundi). Yop Gaz Service n'a pas d'horaires : ouvert en continu, pratique pour une démo.
 INSERT INTO seller_opening_hours (seller_id, day_of_week, opens_at, closes_at)
 SELECT '5e000000-0000-0000-0000-000000000001', d, '07:00', '20:00' FROM generate_series(1, 6) d

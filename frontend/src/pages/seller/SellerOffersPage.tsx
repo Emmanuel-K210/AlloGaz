@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { products as fetchProducts } from '../../api/catalog';
 import * as sellerApi from '../../api/seller';
 import type { Offer, ProductView } from '../../api/types';
-import { ErrorBanner, Spinner } from '../../components/ui';
+import { ColorChips, ErrorBanner, Spinner } from '../../components/ui';
 
 export function SellerOffersPage() {
   const [products, setProducts] = useState<ProductView[] | null>(null);
@@ -81,6 +81,7 @@ function OfferEditor({
         {product.name}
         {product.company && <span className="muted"> · {product.company}</span>}
       </strong>
+      {product.bottleColors.length > 0 && <ColorChips colors={product.bottleColors} />}
       {error && <ErrorBanner message={error} />}
       <div className="row" style={{ flexWrap: 'wrap' }}>
         <div className="field" style={{ flex: 1, minWidth: 130 }}>

@@ -65,6 +65,8 @@ export interface SellerProfile {
   openingHours: OpeningSlot[];
   acceptingOrders: boolean;
   status: 'PENDING' | 'VERIFIED' | 'SUSPENDED';
+  /** Point d'échange toutes marques : reprend une bouteille vide d'une autre société en échange. */
+  universalExchange: boolean;
   createdAt: string;
 }
 
@@ -77,6 +79,7 @@ export interface SellerProfileInput {
   deliveryMode: DeliveryMode;
   deliveryFee: number;
   openingHours: OpeningSlot[];
+  universalExchange: boolean;
 }
 
 export interface Offer {
@@ -135,6 +138,7 @@ export interface SellerResult {
   available: boolean;
   score: number;
   offers: MatchingOffer[];
+  universalExchange: boolean;
 }
 
 export type SearchCriteria = {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { searchSellers } from '../api/search';
 import type { SaleType, SellerResult } from '../api/types';
-import { EmptyState, ErrorBanner, Spinner } from '../components/ui';
+import { EmptyState, ErrorBanner, ExchangeBadge, Spinner } from '../components/ui';
 import { formatCfa, formatDistance } from '../utils/format';
 import { useGeolocation } from '../utils/useGeolocation';
 import { Mascot } from '../components/Mascot';
@@ -56,6 +56,10 @@ export function SearchPage() {
             ? 'Localisation en cours…'
             : 'Classés par distance, disponibilité et note.'}
       </p>
+      <p className="muted" style={{ fontSize: 14, marginBottom: 16 }}>
+        💡 Un dépôt reprend d'habitude une bouteille vide de sa propre société (Oryx, Shell, Petroci…). Repère le
+        badge <ExchangeBadge /> pour les dépôts qui acceptent n'importe quelle bouteille en échange.
+      </p>
 
       <div className="row" style={{ marginBottom: 16, flexWrap: 'wrap' }}>
         <button className="btn secondary" type="button" onClick={locate} disabled={locating}>
@@ -105,6 +109,7 @@ export function SearchPage() {
                 )}
                 {!seller.available && <span className="badge rouge">Stock épuisé</span>}
                 {seller.ratingCount > 0 && <span className="badge neutre">★ {seller.rating.toFixed(1)}</span>}
+                {seller.universalExchange && <ExchangeBadge />}
               </div>
             </div>
           </Link>

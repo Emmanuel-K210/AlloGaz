@@ -215,6 +215,23 @@ textarea {
   color: var(--muted);
 }
 
+.color-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.color-chip-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  flex: none;
+}
+
 .error-banner {
   background: color-mix(in srgb, var(--rouge) 14%, transparent);
   border: 2px solid var(--rouge);

@@ -39,7 +39,7 @@ class JdbcSellerProximityQuery implements SellerProximityQuery {
             WITH buyer AS (SELECT ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography AS g)
             SELECT s.id, s.shop_name, s.address, ST_Y(s.location) AS lat, ST_X(s.location) AS lon,
                    ST_Distance(s.location::geography, buyer.g) AS distance_m,
-                   s.delivery_radius_m, s.delivery_mode, s.delivery_fee,
+                   s.delivery_radius_m, s.delivery_mode, s.delivery_fee, s.universal_exchange,
                    COALESCE(st.rating_sum, 0) AS rating_sum, COALESCE(st.rating_count, 0) AS rating_count,
                    COALESCE(st.orders_decided, 0) AS orders_decided, COALESCE(st.orders_accepted, 0) AS orders_accepted
             FROM seller_profiles s
@@ -86,8 +86,9 @@ class JdbcSellerProximityQuery implements SellerProximityQuery {
         List<SellerRow> sellers = jdbc.sql(SELLERS_SQL).params(params).query((rs, i) -> new SellerRow(
                 rs.getObject("id", UUID.class), rs.getString("shop_name"), rs.getString("address"),
                 rs.getDouble("lat"), rs.getDouble("lon"), rs.getDouble("distance_m"), rs.getInt("delivery_radius_m"),
-                rs.getString("delivery_mode"), rs.getLong("delivery_fee"), rs.getLong("rating_sum"),
-                rs.getLong("rating_count"), rs.getLong("orders_decided"), rs.getLong("orders_accepted"))).list();
+                rs.getString("delivery_mode"), rs.getLong("delivery_fee"), rs.getBoolean("universal_exchange"),
+                rs.getLong("rating_sum"), rs.getLong("rating_count"), rs.getLong("orders_decided"),
+                rs.getLong("orders_accepted"))).list();
         if (sellers.isEmpty()) {
             return List.of();
         }
@@ -107,7 +108,8 @@ class JdbcSellerProximityQuery implements SellerProximityQuery {
 
         return sellers.stream().map(s -> new SellerCandidate(s.id(), s.shopName(), s.address(), s.lat(), s.lon(),
                 s.distance(), s.radius(), s.deliveryMode(), s.deliveryFee(), s.ratingSum(), s.ratingCount(),
-                s.decided(), s.accepted(), offersBySeller.getOrDefault(s.id(), List.of()))).toList();
+                s.decided(), s.accepted(), offersBySeller.getOrDefault(s.id(), List.of()), s.universalExchange()))
+                .toList();
     }
 
     private static Map<String, Object> criteriaParams(Criteria c) {
@@ -122,7 +124,7 @@ class JdbcSellerProximityQuery implements SellerProximityQuery {
     }
 
     private record SellerRow(UUID id, String shopName, String address, double lat, double lon, double distance,
-                             int radius, String deliveryMode, long deliveryFee, long ratingSum, long ratingCount,
-                             long decided, long accepted) {
+                             int radius, String deliveryMode, long deliveryFee, boolean universalExchange,
+                             long ratingSum, long ratingCount, long decided, long accepted) {
     }
 }

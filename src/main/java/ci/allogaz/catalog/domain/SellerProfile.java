@@ -21,27 +21,30 @@ public class SellerProfile {
     private boolean acceptingOrders;
     private VerificationStatus status;
     private DeliveryPolicy deliveryPolicy;
+    /** Point d'échange toutes marques : reprend une bouteille vide d'une autre société en échange. */
+    private boolean universalExchange;
     private final Instant createdAt;
 
     public SellerProfile(UUID id, UUID userId, String shopName, String address, GeoPoint location,
             int deliveryRadiusMeters, List<OpeningSlot> openingHours, boolean acceptingOrders,
-            VerificationStatus status, DeliveryPolicy deliveryPolicy, Instant createdAt) {
+            VerificationStatus status, DeliveryPolicy deliveryPolicy, boolean universalExchange, Instant createdAt) {
         this.id = id;
         this.userId = userId;
         this.createdAt = createdAt;
         this.acceptingOrders = acceptingOrders;
         this.status = status;
-        describe(shopName, address, location, deliveryRadiusMeters, openingHours, deliveryPolicy);
+        describe(shopName, address, location, deliveryRadiusMeters, openingHours, deliveryPolicy, universalExchange);
     }
 
     public static SellerProfile apply(UUID userId, String shopName, String address, GeoPoint location,
-            int deliveryRadiusMeters, List<OpeningSlot> openingHours, DeliveryPolicy deliveryPolicy, Instant now) {
+            int deliveryRadiusMeters, List<OpeningSlot> openingHours, DeliveryPolicy deliveryPolicy,
+            boolean universalExchange, Instant now) {
         return new SellerProfile(UUID.randomUUID(), userId, shopName, address, location, deliveryRadiusMeters,
-                openingHours, false, VerificationStatus.PENDING, deliveryPolicy, now);
+                openingHours, false, VerificationStatus.PENDING, deliveryPolicy, universalExchange, now);
     }
 
     public final void describe(String shopName, String address, GeoPoint location, int deliveryRadiusMeters,
-            List<OpeningSlot> openingHours, DeliveryPolicy deliveryPolicy) {
+            List<OpeningSlot> openingHours, DeliveryPolicy deliveryPolicy, boolean universalExchange) {
         if (shopName == null || shopName.isBlank()) {
             throw new DomainException("INVALID_SELLER", "Le nom du dépôt est obligatoire.");
         }
@@ -57,6 +60,7 @@ public class SellerProfile {
         this.deliveryRadiusMeters = deliveryRadiusMeters;
         this.openingHours = List.copyOf(openingHours == null ? List.of() : openingHours);
         this.deliveryPolicy = deliveryPolicy;
+        this.universalExchange = universalExchange;
     }
 
     public void verify() {
@@ -126,6 +130,10 @@ public class SellerProfile {
 
     public DeliveryPolicy deliveryPolicy() {
         return deliveryPolicy;
+    }
+
+    public boolean universalExchange() {
+        return universalExchange;
     }
 
     public Instant createdAt() {
