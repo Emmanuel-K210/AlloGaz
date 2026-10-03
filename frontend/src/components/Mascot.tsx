@@ -11,7 +11,7 @@ interface MascotProps {
 }
 
 /**
- * La mascotte AlloGaz : une bouteille de gaz souriante avec une flamme sur la tête.
+ * Gazy, la mascotte AlloGaz : une bouteille de gaz souriante avec une flamme sur la tête.
  * Ported depuis la charte graphique (identité visuelle) : poses = contente/réfléchit/désolée/dort/fête.
  */
 export function Mascot({ pose = 'idle', size = 96, clickable = false, label }: MascotProps) {
@@ -39,7 +39,7 @@ export function Mascot({ pose = 'idle', size = 96, clickable = false, label }: M
       className={classes}
       style={{ width, height, cursor: clickable ? 'pointer' : undefined }}
       role={clickable ? 'button' : 'img'}
-      aria-label={label ?? 'Mascotte AlloGaz'}
+      aria-label={label ?? 'Gazy, la mascotte AlloGaz'}
       tabIndex={clickable ? 0 : undefined}
       onClick={hop}
       onKeyDown={(e) => {
