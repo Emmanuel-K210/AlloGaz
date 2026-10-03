@@ -1,0 +1,242 @@
+.mascot-stage {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+
+.mascot-stage .mascot {
+  display: block;
+  overflow: visible;
+}
+
+.mascot-stage .m-hop {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.mascot-stage .m-bob {
+  animation: mascot-bob 2.6s ease-in-out infinite;
+}
+
+@keyframes mascot-bob {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.mascot-stage .m-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mascot-blink 4.2s infinite;
+}
+
+@keyframes mascot-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.08);
+  }
+}
+
+.mascot-stage .m-flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mascot-flicker 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes mascot-flicker {
+  0% {
+    transform: scale(1, 1) rotate(-4deg);
+  }
+  50% {
+    transform: scale(0.92, 1.1) rotate(3deg);
+  }
+  100% {
+    transform: scale(1.05, 0.96) rotate(-1deg);
+  }
+}
+
+.mascot-stage .m-arm {
+  transition: transform 0.4s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+.mascot-stage .m-arm-l {
+  transform-box: fill-box;
+  transform-origin: right center;
+  transform: rotate(-22deg);
+}
+
+.mascot-stage .m-arm-r {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: rotate(22deg);
+}
+
+.mascot-stage .m-pupils {
+  transition: transform 0.4s;
+}
+
+.mascot-stage .m-open,
+.mascot-stage .m-frown,
+.mascot-stage .m-o,
+.mascot-stage .m-brows {
+  display: none;
+}
+
+.mascot-stage.wave .m-arm-r {
+  animation: mascot-wave 1.2s ease-in-out infinite;
+}
+
+@keyframes mascot-wave {
+  0%,
+  100% {
+    transform: rotate(-38deg);
+  }
+  50% {
+    transform: rotate(-68deg);
+  }
+}
+
+.mascot-stage.party .m-smile,
+.mascot-stage.sorry .m-smile,
+.mascot-stage.think .m-smile {
+  display: none;
+}
+
+.mascot-stage.party .m-open {
+  display: block;
+}
+
+.mascot-stage.party .m-arm-l {
+  transform: rotate(128deg);
+  animation: mascot-flapl 0.5s ease-in-out infinite alternate;
+}
+
+.mascot-stage.party .m-arm-r {
+  transform: rotate(-128deg);
+  animation: mascot-flapr 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes mascot-flapl {
+  to {
+    transform: rotate(104deg);
+  }
+}
+
+@keyframes mascot-flapr {
+  to {
+    transform: rotate(-104deg);
+  }
+}
+
+.mascot-stage.party .m-hop {
+  animation: mascot-partyhop 0.85s ease-in-out infinite;
+}
+
+@keyframes mascot-partyhop {
+  0%,
+  100% {
+    transform: scale(1.05, 0.94);
+  }
+  50% {
+    transform: translateY(-22px) scale(0.96, 1.05);
+  }
+}
+
+.mascot-stage.party .m-bob,
+.mascot-stage.sleep .m-bob {
+  animation-duration: 4.5s;
+}
+
+.mascot-stage.party .m-bob {
+  animation: none;
+}
+
+.mascot-stage.sleep .m-eyes {
+  animation: none;
+  transform: scaleY(0.1);
+}
+
+.mascot-stage.sleep .m-flame {
+  animation: none;
+  transform: scale(0.55);
+}
+
+.mascot-stage.think .m-o {
+  display: block;
+}
+
+.mascot-stage.think .m-pupils {
+  transform: translate(4px, -5px);
+}
+
+.mascot-stage.think .m-arm-r {
+  transform: rotate(-62deg);
+}
+
+.mascot-stage.sorry .m-frown,
+.mascot-stage.sorry .m-brows {
+  display: block;
+}
+
+.mascot-stage.sorry .m-flame {
+  animation-duration: 2s;
+  transform: scale(0.7);
+}
+
+.mascot-stage.sorry .m-arm-l {
+  transform: rotate(-8deg);
+}
+
+.mascot-stage.sorry .m-arm-r {
+  transform: rotate(8deg);
+}
+
+.mascot-stage.jump .m-hop {
+  animation: mascot-jump 0.7s ease-out;
+}
+
+@keyframes mascot-jump {
+  0% {
+    transform: none;
+  }
+  18% {
+    transform: scale(1.08, 0.9);
+  }
+  50% {
+    transform: translateY(-40px) scale(0.95, 1.06);
+  }
+  82% {
+    transform: scale(1.06, 0.92);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.mascot-zzz {
+  position: absolute;
+  right: -6px;
+  top: 6px;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--flamme);
+  animation: mascot-zz 2.4s ease-in-out infinite;
+}
+
+@keyframes mascot-zz {
+  0% {
+    opacity: 0;
+    transform: translate(0, 10px) scale(0.7);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(14px, -18px) scale(1.1);
+  }
+}

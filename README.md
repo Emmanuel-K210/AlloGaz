@@ -1,7 +1,7 @@
 # AlloGaz — backend
 
 API de la marketplace AlloGaz : elle met en relation des acheteurs et des dépôts de gaz (achat et recharge
-de bouteilles) en Côte d'Ivoire. Elle est consommée par une PWA React.
+de bouteilles) en Côte d'Ivoire. Elle est consommée par une PWA React (dossier [`frontend/`](frontend/README.md)).
 
 - Java 21, Spring Boot 4.1, Maven
 - PostgreSQL 16 + PostGIS (Hibernate Spatial), migrations Flyway
