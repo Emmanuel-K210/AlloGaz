@@ -25,16 +25,32 @@ class CommissionTest {
     void release_transaction_is_balanced() {
         UUID order = UUID.randomUUID();
         UUID seller = UUID.randomUUID();
-        LedgerTransaction tx = LedgerTransaction.release(order, seller, 10_500, new Commission(500), Instant.now());
+        // Commission 5 % de 10 500 = 525 ; frais de passerelle 1 % de 10 500 = 105 ; commission nette = 420.
+        LedgerTransaction tx = LedgerTransaction.release(order, seller, 10_500, new Commission(500),
+                new GatewayFeeRate(100), Instant.now());
         assertThat(tx.entries()).extracting(LedgerEntry::account, LedgerEntry::amount).containsExactly(
                 org.assertj.core.groups.Tuple.tuple(LedgerAccounts.ESCROW, -10_500L),
                 org.assertj.core.groups.Tuple.tuple(LedgerAccounts.seller(seller), 9_975L),
-                org.assertj.core.groups.Tuple.tuple(LedgerAccounts.PLATFORM_COMMISSION, 525L));
+                org.assertj.core.groups.Tuple.tuple(LedgerAccounts.PLATFORM_COMMISSION, 420L),
+                org.assertj.core.groups.Tuple.tuple(LedgerAccounts.PLATFORM_GATEWAY_FEES, 105L));
+    }
+
+    @Test
+    void gateway_fee_eating_the_whole_commission_still_balances() {
+        UUID order = UUID.randomUUID();
+        UUID seller = UUID.randomUUID();
+        // Commission 5 % de 1 000 = 50 ; frais de passerelle 5 % de 1 000 = 50 : la plateforme ne gagne rien.
+        LedgerTransaction tx = LedgerTransaction.release(order, seller, 1_000, new Commission(500),
+                new GatewayFeeRate(500), Instant.now());
+        assertThat(tx.entries()).extracting(LedgerEntry::account, LedgerEntry::amount).containsExactly(
+                org.assertj.core.groups.Tuple.tuple(LedgerAccounts.ESCROW, -1_000L),
+                org.assertj.core.groups.Tuple.tuple(LedgerAccounts.seller(seller), 950L),
+                org.assertj.core.groups.Tuple.tuple(LedgerAccounts.PLATFORM_GATEWAY_FEES, 50L));
     }
 
     @Test
     void nothing_to_release_from_an_empty_escrow() {
-        assertThatThrownBy(() -> LedgerTransaction.refund(UUID.randomUUID(), 0, Instant.now()))
+        assertThatThrownBy(() -> LedgerTransaction.refund(UUID.randomUUID(), 0, new GatewayFeeRate(0), Instant.now()))
                 .hasMessageContaining("Aucun montant en séquestre");
     }
 }

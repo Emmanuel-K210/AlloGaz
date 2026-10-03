@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import ci.allogaz.payment.domain.Commission;
+import ci.allogaz.payment.domain.GatewayFeeRate;
 
 @Configuration
 public class PaymentConfig {
@@ -12,5 +13,10 @@ public class PaymentConfig {
     @Bean
     public Commission commission(@Value("${allogaz.payment.commission-rate-bps}") int rateBasisPoints) {
         return new Commission(rateBasisPoints);
+    }
+
+    @Bean
+    public GatewayFeeRate gatewayFeeRate(@Value("${allogaz.payment.gateway-fee-rate-bps}") int rateBasisPoints) {
+        return new GatewayFeeRate(rateBasisPoints);
     }
 }

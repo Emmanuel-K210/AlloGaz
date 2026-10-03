@@ -79,8 +79,9 @@ class PaymentEscrowTest extends AbstractIntegrationTest {
         escrow.release(orderId, sellerId);
         assertThat(escrow.escrowed(orderId)).isZero();
         assertThat(escrow.sellerBalance(sellerId)).isEqualTo(9_500);
-        assertThat(escrow.entries(orderId)).hasSize(5)
-                .anySatisfy(e -> assertThat(e.account()).isEqualTo(LedgerAccounts.PLATFORM_COMMISSION));
+        assertThat(escrow.entries(orderId)).hasSize(6)
+                .anySatisfy(e -> assertThat(e.account()).isEqualTo(LedgerAccounts.PLATFORM_COMMISSION))
+                .anySatisfy(e -> assertThat(e.account()).isEqualTo(LedgerAccounts.PLATFORM_GATEWAY_FEES));
 
         // Une seule sortie de séquestre par commande
         assertThatThrownBy(() -> escrow.refund(orderId)).hasMessageContaining("Aucun montant");
