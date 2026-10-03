@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import * as sellerApi from '../../api/seller';
 import type { SellerBalance } from '../../api/seller';
 import type { SellerProfile } from '../../api/types';
-import { ErrorBanner, Spinner } from '../../components/ui';
+import { ErrorBanner, ExchangeBadge, Spinner } from '../../components/ui';
 import { Mascot } from '../../components/Mascot';
 import { formatCfa } from '../../utils/format';
 
@@ -46,13 +46,55 @@ export function SellerDashboardPage() {
     }
   }
 
+  async function toggleUniversalExchange() {
+    setBusy(true);
+    try {
+      const updated = await sellerApi.updateProfile({
+        shopName: profile!.shopName,
+        address: profile!.address ?? undefined,
+        latitude: profile!.latitude,
+        longitude: profile!.longitude,
+        deliveryRadiusMeters: profile!.deliveryRadiusMeters,
+        deliveryMode: profile!.deliveryMode,
+        deliveryFee: profile!.deliveryFee,
+        openingHours: profile!.openingHours,
+        universalExchange: !profile!.universalExchange,
+      });
+      setProfile(updated);
+    } catch {
+      setError('Impossible de mettre à jour ce réglage.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="container">
       <div className="card" style={{ textAlign: 'center', marginBottom: 16 }}>
         <Mascot pose={profile.acceptingOrders ? 'wave' : 'sleep'} size={100} />
         <h1 style={{ fontSize: 22, marginTop: 6 }}>{profile.shopName}</h1>
-        <span className={`badge ${status.tone}`}>{status.label}</span>
+        <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
+          <span className={`badge ${status.tone}`}>{status.label}</span>
+          {profile.universalExchange && <ExchangeBadge />}
+        </div>
       </div>
+
+      <label className="card row" style={{ gap: 10, marginBottom: 16, alignItems: 'flex-start' }}>
+        <input
+          type="checkbox"
+          checked={profile.universalExchange}
+          disabled={busy}
+          onChange={toggleUniversalExchange}
+          style={{ marginTop: 4 }}
+        />
+        <span>
+          <strong>Échange toutes marques</strong>
+          <br />
+          <span className="muted" style={{ fontSize: 14 }}>
+            Tu reprends une bouteille vide même si ce n'est pas ta société (ex. Oryx vide contre Shell pleine).
+          </span>
+        </span>
+      </label>
 
       {profile.status === 'VERIFIED' && (
         <button className="btn block" disabled={busy} onClick={toggleOpen} style={{ marginBottom: 16 }}>

@@ -32,7 +32,8 @@ public class SellerProfileService {
     }
 
     public record SellerProfileCommand(String shopName, String address, GeoPoint location, int deliveryRadiusMeters,
-                                       List<OpeningSlot> openingHours, DeliveryPolicy deliveryPolicy) {
+                                       List<OpeningSlot> openingHours, DeliveryPolicy deliveryPolicy,
+                                       boolean universalExchange) {
     }
 
     /** Un acheteur devient aussi vendeur ; le dépôt reste en attente de vérification. */
@@ -42,7 +43,7 @@ public class SellerProfileService {
             throw new ConflictException("SELLER_PROFILE_EXISTS", "Ce compte possède déjà un dépôt.");
         }
         SellerProfile profile = SellerProfile.apply(userId, c.shopName(), c.address(), c.location(),
-                c.deliveryRadiusMeters(), c.openingHours(), c.deliveryPolicy(), clock.instant());
+                c.deliveryRadiusMeters(), c.openingHours(), c.deliveryPolicy(), c.universalExchange(), clock.instant());
         SellerProfile saved = profiles.save(profile);
         roleGranter.grantSellerRole(userId);
         return saved;
@@ -64,7 +65,7 @@ public class SellerProfileService {
     public SellerProfile update(UUID userId, SellerProfileCommand c) {
         SellerProfile profile = mine(userId);
         profile.describe(c.shopName(), c.address(), c.location(), c.deliveryRadiusMeters(), c.openingHours(),
-                c.deliveryPolicy());
+                c.deliveryPolicy(), c.universalExchange());
         return profiles.save(profile);
     }
 

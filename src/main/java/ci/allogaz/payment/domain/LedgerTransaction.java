@@ -1,6 +1,7 @@
 package ci.allogaz.payment.domain;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,25 +26,47 @@ public record LedgerTransaction(UUID id, List<LedgerEntry> entries) {
                 entry(tx, orderId, LedgerAccounts.ESCROW, EntryType.ESCROW_DEPOSIT, amount, now)));
     }
 
-    /** Libération : séquestre vers vendeur, moins la commission de la plateforme. */
+    /**
+     * Libération : séquestre vers vendeur, moins la commission de la plateforme. Les frais de passerelle
+     * (encaissement + reversement) sont prélevés sur cette commission, jamais sur la part du vendeur :
+     * la ligne {@code COMMISSION} reflète donc la marge nette réelle de la plateforme.
+     */
     public static LedgerTransaction release(UUID orderId, UUID sellerId, long escrowed, Commission commission,
-            Instant now) {
+            GatewayFeeRate gatewayFeeRate, Instant now) {
         requirePositive(escrowed);
         Commission.Split split = commission.split(escrowed);
+        long gatewayFee = gatewayFeeRate.amountFor(escrowed);
+        long netCommission = split.commission() - gatewayFee;
         UUID tx = UUID.randomUUID();
-        return new LedgerTransaction(tx, List.of(
+        List<LedgerEntry> entries = new ArrayList<>(List.of(
                 entry(tx, orderId, LedgerAccounts.ESCROW, EntryType.ESCROW_RELEASE, -escrowed, now),
-                entry(tx, orderId, LedgerAccounts.seller(sellerId), EntryType.ESCROW_RELEASE, split.sellerAmount(), now),
-                entry(tx, orderId, LedgerAccounts.PLATFORM_COMMISSION, EntryType.COMMISSION, split.commission(), now)));
+                entry(tx, orderId, LedgerAccounts.seller(sellerId), EntryType.ESCROW_RELEASE, split.sellerAmount(), now)));
+        if (netCommission != 0) {
+            entries.add(entry(tx, orderId, LedgerAccounts.PLATFORM_COMMISSION, EntryType.COMMISSION, netCommission, now));
+        }
+        if (gatewayFee != 0) {
+            entries.add(entry(tx, orderId, LedgerAccounts.PLATFORM_GATEWAY_FEES, EntryType.GATEWAY_FEE, gatewayFee, now));
+        }
+        return new LedgerTransaction(tx, entries);
     }
 
-    /** Remboursement intégral de l'acheteur depuis le séquestre. */
-    public static LedgerTransaction refund(UUID orderId, long escrowed, Instant now) {
+    /**
+     * Remboursement intégral de l'acheteur depuis le séquestre. Les frais d'encaissement déjà payés à
+     * l'agrégateur ne sont pas récupérables : la plateforme les absorbe sur sa commission (qui peut donc
+     * apparaître négative pour cette commande précise, faute de vente mais avec un encaissement déjà payé).
+     */
+    public static LedgerTransaction refund(UUID orderId, long escrowed, GatewayFeeRate gatewayFeeRate, Instant now) {
         requirePositive(escrowed);
+        long gatewayFee = gatewayFeeRate.amountFor(escrowed);
         UUID tx = UUID.randomUUID();
-        return new LedgerTransaction(tx, List.of(
+        List<LedgerEntry> entries = new ArrayList<>(List.of(
                 entry(tx, orderId, LedgerAccounts.ESCROW, EntryType.REFUND, -escrowed, now),
                 entry(tx, orderId, LedgerAccounts.MOBILE_MONEY, EntryType.REFUND, escrowed, now)));
+        if (gatewayFee != 0) {
+            entries.add(entry(tx, orderId, LedgerAccounts.PLATFORM_GATEWAY_FEES, EntryType.GATEWAY_FEE, gatewayFee, now));
+            entries.add(entry(tx, orderId, LedgerAccounts.PLATFORM_COMMISSION, EntryType.GATEWAY_FEE, -gatewayFee, now));
+        }
+        return new LedgerTransaction(tx, entries);
     }
 
     private static LedgerEntry entry(UUID tx, UUID orderId, String account, EntryType type, long amount, Instant now) {

@@ -60,6 +60,9 @@ class SellerProfileJpaEntity {
     @Column(name = "delivery_fee", nullable = false)
     long deliveryFee;
 
+    @Column(name = "universal_exchange", nullable = false)
+    boolean universalExchange;
+
     @Column(name = "created_at", nullable = false)
     Instant createdAt;
 

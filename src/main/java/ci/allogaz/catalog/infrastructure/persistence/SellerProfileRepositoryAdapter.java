@@ -65,6 +65,7 @@ class SellerProfileRepositoryAdapter implements SellerProfileRepository {
         e.status = p.status();
         e.deliveryMode = p.deliveryPolicy().mode();
         e.deliveryFee = p.deliveryPolicy().fixedFee();
+        e.universalExchange = p.universalExchange();
         e.createdAt = p.createdAt();
         return toDomain(jpa.save(e));
     }
@@ -75,6 +76,6 @@ class SellerProfileRepositoryAdapter implements SellerProfileRepository {
                 .map(s -> new OpeningSlot(DayOfWeek.of(s.dayOfWeek), s.opensAt, s.closesAt)).toList();
         return new SellerProfile(e.id, e.userId, e.shopName, e.address, new GeoPoint(location.getY(), location.getX()),
                 e.deliveryRadiusMeters, slots, e.acceptingOrders, e.status,
-                new DeliveryPolicy(e.deliveryMode, e.deliveryFee), e.createdAt);
+                new DeliveryPolicy(e.deliveryMode, e.deliveryFee), e.universalExchange, e.createdAt);
     }
 }

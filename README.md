@@ -76,6 +76,7 @@ Testcontainers. La suite (environ 250 tests) couvre notamment :
 | `ORDER_AUTO_VALIDATION_DELAY` | `PT24H` | Délai après livraison avant validation automatique |
 | `ORDER_MAX_DELIVERY_CODE_ATTEMPTS` | `5` | Essais pour le code de livraison |
 | `COMMISSION_RATE_BPS` | `500` | Commission en points de base (500 = 5 %) |
+| `PAYMENT_GATEWAY_FEE_RATE_BPS` | `150` | Estimation des frais d'agrégateur Mobile Money (encaissement + reversement), en points de base. Prélevée sur la commission (jamais sur l'acheteur ni le vendeur) : à ajuster avec les tarifs réels une fois CinetPay/PayDunya branché |
 | `PAYMENT_PROVIDER` | `fake` | Agrégateur Mobile Money (seule la passerelle factice existe pour l'instant) |
 | `PAYMENT_FAKE_AUTO_SUCCEED` | `true` | Passerelle factice : confirmation immédiate, ou attente de la simulation |
 | `SEARCH_MAX_RADIUS_M` | `30000` | Rayon maximal de recherche des dépôts |
@@ -109,6 +110,12 @@ Les erreurs suivent la RFC 9457 (`application/problem+json`) avec un champ `code
 | `GET /catalog/products?category&brand&company&color&sizeKg` | Produits (société de provenance, couleurs, contenance) |
 | `GET /catalog/sellers/{id}` | Fiche d'un dépôt vérifié et ses offres |
 | `GET /search/sellers?lat&lon&productId&brand&company&color&sizeKg&type=REFILL\|PURCHASE&limit` | Dépôts vérifiés et ouverts, classés par score |
+
+Un dépôt « échange toutes marques » (`universalExchange`, réglable via `POST/PUT /seller/profile`) reprend une
+bouteille vide de n'importe quelle société en échange d'une des siennes. Il ressort donc dans `/search/sellers`
+même quand `brand`/`company`/`color`/`productId` ne correspond pas à ce qu'il vend : seuls la contenance
+(`sizeKg`) et le type (`REFILL`/`PURCHASE`) restent filtrants pour lui. Un dépôt classique n'est remonté que
+s'il vend effectivement la société/couleur demandée.
 
 **Vendeur** (rôle `SELLER`, sauf la création du dépôt)
 
@@ -191,6 +198,11 @@ shared     erreurs, GeoPoint, configuration
   (Mobile Money → séquestre → vendeur + commission, ou retour à l'acheteur). Le grand livre est en ajout seul
   (un déclencheur interdit `UPDATE` et `DELETE`), et des index uniques garantissent un seul dépôt et une seule
   sortie de séquestre par commande. Un litige gèle simplement les fonds jusqu'à la décision de l'administrateur.
+- **Frais de passerelle Mobile Money** (`PLATFORM:GATEWAY_FEES`) : l'agrégateur (CinetPay/PayDunya) facture
+  un coût à l'encaissement et au reversement, sans que l'acheteur ou le vendeur ne le voie. Ce coût est estimé
+  (`gateway-fee-rate-bps`, § variables d'environnement) et prélevé sur la commission de la plateforme à la
+  libération et au remboursement, pour que la ligne `PLATFORM:COMMISSION` reflète la marge nette réelle plutôt
+  que la commission brute — sans ça, la plateforme peut perdre de l'argent sans que ça se voie nulle part.
 - **Stock et concurrence** : le stock est décrémenté à la confirmation du paiement, sous verrouillage optimiste
   (`@Version`). En cas de conflit, la confirmation est rejouée ; si le stock manque alors, la commande est
   annulée et l'acheteur remboursé automatiquement.

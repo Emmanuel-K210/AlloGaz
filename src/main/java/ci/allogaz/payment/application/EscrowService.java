@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ci.allogaz.payment.application.port.out.LedgerRepository;
 import ci.allogaz.payment.domain.Commission;
+import ci.allogaz.payment.domain.GatewayFeeRate;
 import ci.allogaz.payment.domain.LedgerAccounts;
 import ci.allogaz.payment.domain.LedgerEntry;
 import ci.allogaz.payment.domain.LedgerTransaction;
@@ -23,11 +24,13 @@ public class EscrowService {
 
     private final LedgerRepository ledger;
     private final Commission commission;
+    private final GatewayFeeRate gatewayFeeRate;
     private final Clock clock;
 
-    public EscrowService(LedgerRepository ledger, Commission commission, Clock clock) {
+    public EscrowService(LedgerRepository ledger, Commission commission, GatewayFeeRate gatewayFeeRate, Clock clock) {
         this.ledger = ledger;
         this.commission = commission;
+        this.gatewayFeeRate = gatewayFeeRate;
         this.clock = clock;
     }
 
@@ -40,7 +43,8 @@ public class EscrowService {
     @Transactional
     public Commission.Split release(UUID orderId, UUID sellerId) {
         long escrowed = escrowed(orderId);
-        LedgerTransaction tx = LedgerTransaction.release(orderId, sellerId, escrowed, commission, clock.instant());
+        LedgerTransaction tx = LedgerTransaction.release(orderId, sellerId, escrowed, commission, gatewayFeeRate,
+                clock.instant());
         ledger.append(tx);
         return commission.split(escrowed);
     }
@@ -48,7 +52,7 @@ public class EscrowService {
     @Transactional
     public long refund(UUID orderId) {
         long escrowed = escrowed(orderId);
-        ledger.append(LedgerTransaction.refund(orderId, escrowed, clock.instant()));
+        ledger.append(LedgerTransaction.refund(orderId, escrowed, gatewayFeeRate, clock.instant()));
         return escrowed;
     }
 

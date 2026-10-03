@@ -3,6 +3,7 @@ package ci.allogaz.geo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
@@ -11,11 +12,15 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ci.allogaz.AbstractIntegrationTest;
 import ci.allogaz.catalog.application.SellerProfileService;
@@ -66,14 +71,14 @@ class ProximitySearchTest extends AbstractIntegrationTest {
         // Non vérifié
         User pendingUser = fixtures.user();
         SellerProfile pending = profiles.apply(pendingUser.id(), new SellerProfileCommand("Non vérifié", null,
-                new GeoPoint(LAT, LON), 3_000, List.of(), fixed()));
+                new GeoPoint(LAT, LON), 3_000, List.of(), fixed(), false));
 
         // Fermé à cette heure-ci : seul créneau demain
         var ferme = fixtures.verifiedSeller("Fermé", LAT, LON - 0.002, 3_000, fixed());
         fixtures.offer(ferme, Fixtures.ORYX_12KG, 5_000L, null, 8);
         var tomorrow = LocalDateTime.now(ZoneId.of("Africa/Abidjan")).plusDays(1).getDayOfWeek();
         profiles.update(ferme.user().id(), new SellerProfileCommand("Fermé", null, new GeoPoint(LAT, LON - 0.002),
-                3_000, List.of(new OpeningSlot(tomorrow, LocalTime.of(0, 0), LocalTime.of(23, 59))), fixed()));
+                3_000, List.of(new OpeningSlot(tomorrow, LocalTime.of(0, 0), LocalTime.of(23, 59))), fixed(), false));
     }
 
     private static DeliveryPolicy fixed() {
@@ -104,6 +109,38 @@ class ProximitySearchTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$[*].shopName").value(not(hasItem("En pause"))))
                 .andExpect(jsonPath("$[*].shopName").value(not(hasItem("Non vérifié"))))
                 .andExpect(jsonPath("$[*].shopName").value(not(hasItem("Fermé"))));
+    }
+
+    /**
+     * Isolé dans son propre coin du monde (loin de Yamoussoukro et d'Abidjan) : la requête couvre exactement
+     * les mêmes paramètres (société, contenance, type) qu'une recherche « normale », donc on ne peut pas
+     * réutiliser le jeu de données partagé sans fausser les autres assertions de cette classe (elles
+     * dénombrent exactement leurs vendeurs attendus).
+     */
+    @Test
+    void universal_exchange_seller_appears_for_a_different_company_than_its_own_offers() throws Exception {
+        double lat = 8.5, lon = -6.5;
+        var echangeUniversel = fixtures.universalExchangeSeller("Echange universel", lat - 0.001, lon, 3_000, fixed());
+        fixtures.offer(echangeUniversel, Fixtures.CORLAY_6KG, 5_300L, null, 6);
+        var corlaySeulement = fixtures.verifiedSeller("Corlay seulement", lat - 0.002, lon, 3_000, fixed());
+        fixtures.offer(corlaySeulement, Fixtures.CORLAY_6KG, 5_000L, null, 4);
+
+        String body = mvc.perform(get("/api/v1/search/sellers").param("lat", "" + lat).param("lon", "" + lon)
+                        .param("company", ORYX).param("sizeKg", "6").param("type", "REFILL"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        JsonNode sellers = new ObjectMapper().readTree(body);
+        List<String> names = StreamSupport.stream(sellers.spliterator(), false)
+                .map(n -> n.get("shopName").asText()).toList();
+        // Le point d'échange ressort même s'il ne vend que du Corlay ; le dépôt Corlay « classique » reste exclu.
+        assertThat(names).contains("Echange universel").doesNotContain("Corlay seulement");
+
+        JsonNode match = StreamSupport.stream(sellers.spliterator(), false)
+                .filter(n -> n.get("shopName").asText().equals("Echange universel"))
+                .findFirst().orElseThrow();
+        assertThat(match.get("universalExchange").asBoolean()).isTrue();
+        assertThat(match.get("offers").get(0).get("company").asText()).isEqualTo("Corlay Côte d'Ivoire");
     }
 
     @Test

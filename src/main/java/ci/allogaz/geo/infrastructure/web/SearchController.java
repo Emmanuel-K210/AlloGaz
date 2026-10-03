@@ -57,14 +57,15 @@ public class SearchController {
     public record SellerResult(UUID sellerId, String shopName, String address, double latitude, double longitude,
                                long distanceMeters, boolean deliversToYou, String deliveryMode, long deliveryFee,
                                double rating, long ratingCount, double acceptanceRate, boolean available,
-                               double score, List<MatchingOffer> offers) {
+                               double score, List<MatchingOffer> offers, boolean universalExchange) {
 
         static SellerResult from(RankedSeller r) {
             var s = r.seller();
             return new SellerResult(s.sellerId(), s.shopName(), s.address(), s.latitude(), s.longitude(),
                     Math.round(s.distanceMeters()), s.deliversTo(), s.deliveryMode(), s.deliveryFee(),
                     Math.round(r.averageRating() * 10) / 10.0, s.ratingCount(),
-                    Math.round(r.acceptanceRate() * 100) / 100.0, s.hasStock(), r.score(), s.offers());
+                    Math.round(r.acceptanceRate() * 100) / 100.0, s.hasStock(), r.score(), s.offers(),
+                    s.universalExchange());
         }
     }
 }

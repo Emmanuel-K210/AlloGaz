@@ -48,25 +48,26 @@ public final class CatalogDtos {
             @Min(0) @Max(50_000) int deliveryRadiusMeters,
             @NotNull DeliveryMode deliveryMode,
             @PositiveOrZero long deliveryFee,
-            List<@Valid OpeningSlotDto> openingHours) {
+            List<@Valid OpeningSlotDto> openingHours,
+            boolean universalExchange) {
 
         SellerProfileCommand toCommand() {
             return new SellerProfileCommand(shopName, address, new GeoPoint(latitude, longitude), deliveryRadiusMeters,
                     openingHours == null ? List.of() : openingHours.stream().map(OpeningSlotDto::toDomain).toList(),
-                    new DeliveryPolicy(deliveryMode, deliveryFee));
+                    new DeliveryPolicy(deliveryMode, deliveryFee), universalExchange);
         }
     }
 
     public record SellerProfileResponse(UUID id, UUID userId, String shopName, String address, double latitude,
                                         double longitude, int deliveryRadiusMeters, DeliveryMode deliveryMode,
                                         long deliveryFee, List<OpeningSlotDto> openingHours, boolean acceptingOrders,
-                                        String status, Instant createdAt) {
+                                        String status, boolean universalExchange, Instant createdAt) {
 
         static SellerProfileResponse from(SellerProfile p) {
             return new SellerProfileResponse(p.id(), p.userId(), p.shopName(), p.address(), p.location().latitude(),
                     p.location().longitude(), p.deliveryRadiusMeters(), p.deliveryPolicy().mode(),
                     p.deliveryPolicy().fixedFee(), p.openingHours().stream().map(OpeningSlotDto::from).toList(),
-                    p.acceptingOrders(), p.status().name(), p.createdAt());
+                    p.acceptingOrders(), p.status().name(), p.universalExchange(), p.createdAt());
         }
     }
 

@@ -22,24 +22,35 @@ import ci.allogaz.shared.domain.GeoPoint;
 @Repository
 class JdbcSellerProximityQuery implements SellerProximityQuery {
 
-    /** Filtre d'offre partagé par les deux requêtes (alias o = offre, p = produit). */
+    /**
+     * Filtre d'offre partagé par les deux requêtes (alias o = offre, p = produit, s = dépôt).
+     * La contenance et le type de vente s'appliquent toujours ; la société/marque/couleur de la bouteille
+     * (ce que l'acheteur a en main) ne s'applique qu'aux dépôts qui ne font PAS l'échange toutes marques :
+     * un point d'échange universel doit remonter même s'il ne vend pas la société recherchée, puisqu'il la
+     * reprend quand même en échange d'une autre.
+     */
     private static final String OFFER_FILTER = """
             o.active AND p.active
-            AND (CAST(:productId AS uuid) IS NULL OR p.id = CAST(:productId AS uuid))
-            AND (CAST(:brand AS text) IS NULL OR lower(p.brand) = lower(CAST(:brand AS text)))
-            AND (CAST(:company AS text) IS NULL OR lower(p.company) = lower(CAST(:company AS text)))
-            AND (CAST(:color AS text) IS NULL OR lower(CAST(:color AS text)) = ANY (p.bottle_colors))
             AND (CAST(:capacity AS integer) IS NULL OR p.capacity_grams = CAST(:capacity AS integer))
             AND (CAST(:saleType AS text) IS NULL
                  OR (CAST(:saleType AS text) = 'REFILL' AND o.refill_price IS NOT NULL)
                  OR (CAST(:saleType AS text) = 'PURCHASE' AND o.purchase_price IS NOT NULL))
+            AND (
+                  s.universal_exchange
+                  OR (
+                       (CAST(:productId AS uuid) IS NULL OR p.id = CAST(:productId AS uuid))
+                       AND (CAST(:brand AS text) IS NULL OR lower(p.brand) = lower(CAST(:brand AS text)))
+                       AND (CAST(:company AS text) IS NULL OR lower(p.company) = lower(CAST(:company AS text)))
+                       AND (CAST(:color AS text) IS NULL OR lower(CAST(:color AS text)) = ANY (p.bottle_colors))
+                     )
+                )
             """;
 
     private static final String SELLERS_SQL = """
             WITH buyer AS (SELECT ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography AS g)
             SELECT s.id, s.shop_name, s.address, ST_Y(s.location) AS lat, ST_X(s.location) AS lon,
                    ST_Distance(s.location::geography, buyer.g) AS distance_m,
-                   s.delivery_radius_m, s.delivery_mode, s.delivery_fee,
+                   s.delivery_radius_m, s.delivery_mode, s.delivery_fee, s.universal_exchange,
                    COALESCE(st.rating_sum, 0) AS rating_sum, COALESCE(st.rating_count, 0) AS rating_count,
                    COALESCE(st.orders_decided, 0) AS orders_decided, COALESCE(st.orders_accepted, 0) AS orders_accepted
             FROM seller_profiles s
@@ -61,7 +72,7 @@ class JdbcSellerProximityQuery implements SellerProximityQuery {
     private static final String OFFERS_SQL = """
             SELECT o.id, o.seller_id, p.id AS product_id, p.name, p.brand, p.company, p.bottle_colors, p.appearance,
                    p.capacity_grams, o.refill_price, o.purchase_price, o.stock
-            FROM seller_offers o JOIN products p ON p.id = o.product_id
+            FROM seller_offers o JOIN products p ON p.id = o.product_id JOIN seller_profiles s ON s.id = o.seller_id
             WHERE o.seller_id IN (:sellerIds) AND %s
             ORDER BY o.stock DESC, p.name
             """.formatted(OFFER_FILTER);
@@ -86,8 +97,9 @@ class JdbcSellerProximityQuery implements SellerProximityQuery {
         List<SellerRow> sellers = jdbc.sql(SELLERS_SQL).params(params).query((rs, i) -> new SellerRow(
                 rs.getObject("id", UUID.class), rs.getString("shop_name"), rs.getString("address"),
                 rs.getDouble("lat"), rs.getDouble("lon"), rs.getDouble("distance_m"), rs.getInt("delivery_radius_m"),
-                rs.getString("delivery_mode"), rs.getLong("delivery_fee"), rs.getLong("rating_sum"),
-                rs.getLong("rating_count"), rs.getLong("orders_decided"), rs.getLong("orders_accepted"))).list();
+                rs.getString("delivery_mode"), rs.getLong("delivery_fee"), rs.getBoolean("universal_exchange"),
+                rs.getLong("rating_sum"), rs.getLong("rating_count"), rs.getLong("orders_decided"),
+                rs.getLong("orders_accepted"))).list();
         if (sellers.isEmpty()) {
             return List.of();
         }
@@ -107,7 +119,8 @@ class JdbcSellerProximityQuery implements SellerProximityQuery {
 
         return sellers.stream().map(s -> new SellerCandidate(s.id(), s.shopName(), s.address(), s.lat(), s.lon(),
                 s.distance(), s.radius(), s.deliveryMode(), s.deliveryFee(), s.ratingSum(), s.ratingCount(),
-                s.decided(), s.accepted(), offersBySeller.getOrDefault(s.id(), List.of()))).toList();
+                s.decided(), s.accepted(), offersBySeller.getOrDefault(s.id(), List.of()), s.universalExchange()))
+                .toList();
     }
 
     private static Map<String, Object> criteriaParams(Criteria c) {
@@ -122,7 +135,7 @@ class JdbcSellerProximityQuery implements SellerProximityQuery {
     }
 
     private record SellerRow(UUID id, String shopName, String address, double lat, double lon, double distance,
-                             int radius, String deliveryMode, long deliveryFee, long ratingSum, long ratingCount,
-                             long decided, long accepted) {
+                             int radius, String deliveryMode, long deliveryFee, boolean universalExchange,
+                             long ratingSum, long ratingCount, long decided, long accepted) {
     }
 }

@@ -21,7 +21,7 @@ class SellerProfileTest {
 
     private SellerProfile profile(List<OpeningSlot> hours) {
         return SellerProfile.apply(UUID.randomUUID(), "Dépôt", "Cocody", new GeoPoint(5.35, -3.98), 3_000, hours,
-                new DeliveryPolicy(DeliveryMode.INCLUDED, 0), Instant.now());
+                new DeliveryPolicy(DeliveryMode.INCLUDED, 0), false, Instant.now());
     }
 
     @Test

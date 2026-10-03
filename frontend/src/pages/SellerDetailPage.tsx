@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { publicSeller } from '../api/catalog';
 import type { Offer, PublicSeller } from '../api/types';
-import { ErrorBanner, Spinner } from '../components/ui';
+import { ColorChips, ErrorBanner, ExchangeBadge, Spinner } from '../components/ui';
 import { formatCfa } from '../utils/format';
 import { useCart } from '../cart/CartContext';
 import { Mascot } from '../components/Mascot';
@@ -73,7 +73,13 @@ export function SellerDetailPage() {
                 ? 'Livraison incluse'
                 : `Livraison ${formatCfa(profile.deliveryFee)}`}
           </span>
+          {profile.universalExchange && <ExchangeBadge />}
         </div>
+        {profile.universalExchange && (
+          <p className="muted" style={{ fontSize: 14, marginTop: 10 }}>
+            Ce dépôt reprend ta bouteille vide même si ce n'est pas la même société que celle que tu choisis ici.
+          </p>
+        )}
       </div>
 
       {toast && <div className="badge bleu" style={{ marginBottom: 12, display: 'block', textAlign: 'center' }}>{toast}</div>}
@@ -125,7 +131,9 @@ function OfferRow({
         </span>
       </div>
       {offer.bottleColors.length > 0 && (
-        <p className="muted" style={{ fontSize: 13, marginTop: 2 }}>Couleurs : {offer.bottleColors.join(', ')}</p>
+        <div style={{ marginTop: 4 }}>
+          <ColorChips colors={offer.bottleColors} />
+        </div>
       )}
 
       <div className="row" style={{ marginTop: 10 }}>

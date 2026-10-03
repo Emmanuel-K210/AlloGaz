@@ -69,6 +69,10 @@ allogaz:
       auto-succeed: ${PAYMENT_FAKE_AUTO_SUCCEED:true}
     # Commission de la plateforme en points de base (500 = 5 %)
     commission-rate-bps: ${COMMISSION_RATE_BPS:500}
+    # Estimation des frais d'agrégateur Mobile Money (encaissement + reversement), en points de base
+    # (150 = 1,5 %) : prélevée sur la commission, jamais sur l'acheteur ni le vendeur. À ajuster avec
+    # les tarifs réels une fois CinetPay/PayDunya branché.
+    gateway-fee-rate-bps: ${PAYMENT_GATEWAY_FEE_RATE_BPS:150}
   search:
     max-radius-meters: ${SEARCH_MAX_RADIUS_M:30000}
     candidate-limit: 50

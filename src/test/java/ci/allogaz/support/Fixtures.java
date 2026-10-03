@@ -27,6 +27,7 @@ public class Fixtures {
     public static final UUID TOTAL_12KG = UUID.fromString("00000000-0000-0000-0001-000000000002");
     public static final UUID ORYX_6KG = UUID.fromString("00000000-0000-0000-0001-000000000003");
     public static final UUID ORYX_12KG = UUID.fromString("00000000-0000-0000-0001-000000000004");
+    public static final UUID CORLAY_6KG = UUID.fromString("00000000-0000-0000-0001-000000000007");
 
     private static final AtomicLong PHONE_SEQUENCE = new AtomicLong(System.nanoTime() % 10_000_000L);
 
@@ -61,7 +62,7 @@ public class Fixtures {
     public Seller verifiedSeller(String name, double lat, double lon, int radiusMeters, DeliveryPolicy policy) {
         User user = user();
         SellerProfile profile = profiles.apply(user.id(),
-                new SellerProfileCommand(name, "Abidjan", new GeoPoint(lat, lon), radiusMeters, List.of(), policy));
+                new SellerProfileCommand(name, "Abidjan", new GeoPoint(lat, lon), radiusMeters, List.of(), policy, false));
         profiles.verify(profile.id());
         profile = profiles.setAcceptingOrders(user.id(), true);
         return new Seller(users.findById(user.id()).orElseThrow(), profile);
@@ -69,6 +70,16 @@ public class Fixtures {
 
     public Seller verifiedSeller(String name, double lat, double lon) {
         return verifiedSeller(name, lat, lon, 5_000, new DeliveryPolicy(DeliveryMode.FIXED_FEE, 500));
+    }
+
+    /** Dépôt vérifié, ouvert, qui reprend une bouteille vide de n'importe quelle société en échange. */
+    public Seller universalExchangeSeller(String name, double lat, double lon, int radiusMeters, DeliveryPolicy policy) {
+        User user = user();
+        SellerProfile profile = profiles.apply(user.id(),
+                new SellerProfileCommand(name, "Abidjan", new GeoPoint(lat, lon), radiusMeters, List.of(), policy, true));
+        profiles.verify(profile.id());
+        profile = profiles.setAcceptingOrders(user.id(), true);
+        return new Seller(users.findById(user.id()).orElseThrow(), profile);
     }
 
     public SellerOffer offer(Seller seller, UUID productId, Long refillPrice, Long purchasePrice, int stock) {

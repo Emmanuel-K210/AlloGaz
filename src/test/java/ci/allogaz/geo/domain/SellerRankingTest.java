@@ -18,7 +18,7 @@ class SellerRankingTest {
         MatchingOffer offer = new MatchingOffer(UUID.randomUUID(), UUID.randomUUID(), "B12", "Oryx", "Oryx", List.of("gris", "bleu"), null,
                 12500, 5200L, null, stock);
         return new SellerCandidate(UUID.randomUUID(), name, null, 0, 0, distance, radius, "FIXED_FEE", 500,
-                ratingSum, ratingCount, decided, accepted, List.of(offer));
+                ratingSum, ratingCount, decided, accepted, List.of(offer), false);
     }
 
     private List<String> names(List<SellerCandidate> candidates) {

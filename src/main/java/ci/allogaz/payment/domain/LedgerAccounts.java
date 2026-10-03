@@ -9,8 +9,10 @@ public final class LedgerAccounts {
     public static final String MOBILE_MONEY = "EXTERNAL:MOBILE_MONEY";
     /** Argent bloqué en séquestre en attendant la validation de la commande. */
     public static final String ESCROW = "ESCROW";
-    /** Commissions de la plateforme. */
+    /** Commissions de la plateforme (nette des frais de passerelle). */
     public static final String PLATFORM_COMMISSION = "PLATFORM:COMMISSION";
+    /** Frais prélevés par l'agrégateur Mobile Money (encaissement et reversement), à la charge de la plateforme. */
+    public static final String PLATFORM_GATEWAY_FEES = "PLATFORM:GATEWAY_FEES";
 
     private LedgerAccounts() {
     }
