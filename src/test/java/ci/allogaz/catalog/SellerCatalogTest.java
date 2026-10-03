@@ -67,9 +67,15 @@ class SellerCatalogTest extends AbstractIntegrationTest {
         mvc.perform(post("/api/v1/seller/profile/open").header("Authorization", sellerToken))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.acceptingOrders").value(true));
 
+        // Le tarif national est fixé par un administrateur, jamais par le vendeur.
+        mvc.perform(put("/api/v1/admin/products/" + Fixtures.TOTAL_12KG + "/price").header("Authorization", bearer(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refillPrice\":5200,\"purchasePrice\":25000}"))
+                .andExpect(status().isOk());
+
         mvc.perform(put("/api/v1/seller/offers/" + Fixtures.TOTAL_12KG).header("Authorization", sellerToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"refillPrice\":5200,\"purchasePrice\":25000,\"stock\":12}"))
+                        .content("{\"stock\":12}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.brand").value("TotalEnergies"))
                 .andExpect(jsonPath("$.capacityGrams").value(12500))

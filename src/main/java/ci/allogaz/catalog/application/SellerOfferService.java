@@ -29,22 +29,18 @@ public class SellerOfferService {
     public record OfferDetails(SellerOffer offer, Product product) {
     }
 
-    /** Crée ou met à jour l'offre du vendeur connecté sur un produit. */
+    /**
+     * Crée ou met à jour l'offre du vendeur connecté sur un produit : son stock et s'il l'affiche aux
+     * acheteurs. Le prix n'est pas ici : il est national et réglementé (voir {@link Product}), le vendeur
+     * ne peut pas le fixer.
+     */
     @Transactional
-    public OfferDetails upsert(UUID userId, UUID productId, Long refillPrice, Long purchasePrice, int stock,
-            boolean active) {
+    public OfferDetails upsert(UUID userId, UUID productId, int stock, boolean active) {
         SellerProfile seller = profiles.mine(userId);
         Product product = catalog.product(productId);
         SellerOffer offer = offers.findBySellerAndProduct(seller.id(), productId)
-                .map(existing -> {
-                    existing.update(refillPrice, purchasePrice, stock, active);
-                    return existing;
-                })
-                .orElseGet(() -> {
-                    SellerOffer created = SellerOffer.create(seller.id(), productId, refillPrice, purchasePrice, stock);
-                    created.update(refillPrice, purchasePrice, stock, active);
-                    return created;
-                });
+                .orElseGet(() -> SellerOffer.create(seller.id(), productId, stock));
+        offer.update(stock, active);
         return new OfferDetails(offers.save(offer), product);
     }
 

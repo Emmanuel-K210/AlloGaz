@@ -49,15 +49,12 @@ class SellerOfferRepositoryAdapter implements SellerOfferRepository {
         } else if (e.version != o.version()) {
             throw new ObjectOptimisticLockingFailureException(SellerOfferJpaEntity.class, o.id());
         }
-        e.refillPrice = o.refillPrice();
-        e.purchasePrice = o.purchasePrice();
         e.stock = o.stock();
         e.active = o.active();
         return toDomain(jpa.saveAndFlush(e));
     }
 
     private static SellerOffer toDomain(SellerOfferJpaEntity e) {
-        return new SellerOffer(e.id, e.sellerId, e.productId, e.refillPrice, e.purchasePrice, e.stock, e.active,
-                e.version);
+        return new SellerOffer(e.id, e.sellerId, e.productId, e.stock, e.active, e.version);
     }
 }

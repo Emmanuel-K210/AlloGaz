@@ -33,6 +33,7 @@ export interface CategoryView {
   name: string;
 }
 
+/** Le prix (recharge/achat) est national et réglementé : identique chez tous les dépôts, modifiable par l'admin seul. */
 export interface ProductView {
   id: string;
   categorySlug: string;
@@ -42,6 +43,8 @@ export interface ProductView {
   bottleColors: string[];
   appearance: string | null;
   capacityGrams: number | null;
+  refillPrice: number | null;
+  purchasePrice: number | null;
 }
 
 export type DeliveryMode = 'INCLUDED' | 'FIXED_FEE' | 'PICKUP_ONLY';

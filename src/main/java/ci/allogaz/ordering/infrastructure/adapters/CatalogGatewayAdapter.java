@@ -31,8 +31,10 @@ class CatalogGatewayAdapter implements CatalogGateway {
     @Override
     public OfferInfo offer(UUID offerId) {
         OfferDetails d = offers.get(offerId);
+        // Le prix est national (porté par le produit), pas fixé par le dépôt ; "active" reste celui de l'offre :
+        // un dépôt peut masquer un produit par ailleurs tarifé sans que ça affecte les autres dépôts.
         return new OfferInfo(d.offer().id(), d.offer().sellerId(), d.product().id(), d.product().name(),
-                d.offer().refillPrice(), d.offer().purchasePrice(), d.offer().stock(), d.offer().active());
+                d.product().refillPrice(), d.product().purchasePrice(), d.offer().stock(), d.offer().active());
     }
 
     @Override

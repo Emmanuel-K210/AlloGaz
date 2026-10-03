@@ -10,8 +10,9 @@ public class TestBeans {
     @Bean
     public Fixtures fixtures(ci.allogaz.identity.application.port.out.UserRepository users,
             ci.allogaz.catalog.application.SellerProfileService profiles,
-            ci.allogaz.catalog.application.SellerOfferService offers) {
-        return new Fixtures(users, profiles, offers);
+            ci.allogaz.catalog.application.SellerOfferService offers,
+            ci.allogaz.catalog.application.CatalogQueryService catalog) {
+        return new Fixtures(users, profiles, offers, catalog);
     }
 
     @Bean

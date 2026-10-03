@@ -82,10 +82,11 @@ public class SellerController {
 
     @PutMapping("/offers/{productId}")
     @PreAuthorize("hasRole('SELLER')")
-    @Operation(summary = "Crée ou met à jour l'offre du dépôt sur un produit (prix en F CFA, stock)")
+    @Operation(summary = "Crée ou met à jour l'offre du dépôt sur un produit (stock, actif ou non). "
+            + "Le prix est national et réglementé : le vendeur ne peut pas le fixer.")
     public OfferResponse upsertOffer(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID productId,
             @Valid @RequestBody OfferRequest r) {
-        return OfferResponse.from(offers.upsert(CurrentUser.id(jwt), productId, r.refillPrice(), r.purchasePrice(),
-                r.stock(), r.active() == null || r.active()));
+        return OfferResponse.from(offers.upsert(CurrentUser.id(jwt), productId, r.stock(),
+                r.active() == null || r.active()));
     }
 }

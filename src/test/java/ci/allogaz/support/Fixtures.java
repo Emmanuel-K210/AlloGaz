@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
+import ci.allogaz.catalog.application.CatalogQueryService;
 import ci.allogaz.catalog.application.SellerOfferService;
 import ci.allogaz.catalog.application.SellerProfileService;
 import ci.allogaz.catalog.application.SellerProfileService.SellerProfileCommand;
@@ -34,11 +35,14 @@ public class Fixtures {
     private final UserRepository users;
     private final SellerProfileService profiles;
     private final SellerOfferService offers;
+    private final CatalogQueryService catalog;
 
-    public Fixtures(UserRepository users, SellerProfileService profiles, SellerOfferService offers) {
+    public Fixtures(UserRepository users, SellerProfileService profiles, SellerOfferService offers,
+            CatalogQueryService catalog) {
         this.users = users;
         this.profiles = profiles;
         this.offers = offers;
+        this.catalog = catalog;
     }
 
     public static String uniquePhone() {
@@ -82,7 +86,22 @@ public class Fixtures {
         return new Seller(users.findById(user.id()).orElseThrow(), profile);
     }
 
+    /**
+     * Fixe le tarif national du produit (recharge/achat, administrateur) puis crée l'offre du dépôt dessus.
+     * Pratique en test, mais le tarif est partagé par tous les dépôts : s'il varie d'un appel à l'autre
+     * pour le même produit dans une même classe de test, le dernier appel gagne (mêmes règles qu'en prod).
+     */
     public SellerOffer offer(Seller seller, UUID productId, Long refillPrice, Long purchasePrice, int stock) {
-        return offers.upsert(seller.user().id(), productId, refillPrice, purchasePrice, stock, true).offer();
+        setProductPrice(productId, refillPrice, purchasePrice);
+        return offer(seller, productId, stock);
+    }
+
+    /** Crée l'offre du dépôt sur un produit dont le tarif national est déjà fixé (ou volontairement absent). */
+    public SellerOffer offer(Seller seller, UUID productId, int stock) {
+        return offers.upsert(seller.user().id(), productId, stock, true).offer();
+    }
+
+    public void setProductPrice(UUID productId, Long refillPrice, Long purchasePrice) {
+        catalog.updateProductPrice(productId, refillPrice, purchasePrice);
     }
 }

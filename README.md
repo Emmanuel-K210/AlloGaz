@@ -123,7 +123,7 @@ s'il vend effectivement la société/couleur demandée.
 |---|---|
 | `POST /seller/profile` | Ouvre un dépôt (en attente de validation) et donne le rôle `SELLER` (rafraîchir le jeton ensuite) |
 | `GET/PUT /seller/profile`, `POST /seller/profile/open`, `POST /seller/profile/pause` | Profil, ouverture et pause |
-| `GET /seller/offers`, `PUT /seller/offers/{productId}` | Offres : prix de recharge et d'achat, stock |
+| `GET /seller/offers`, `PUT /seller/offers/{productId}` | Offres : stock et visibilité (le prix est national, non modifiable ici) |
 | `GET /seller/orders?status=` | Commandes reçues |
 | `POST /seller/orders/{id}/accept` \| `reject` \| `prepare` \| `dispatch` \| `delivered` | Cycle de la commande |
 | `POST /seller/orders/{id}/delivery-code` `{code}` | Code donné par l'acheteur : valide la commande et libère les fonds |
@@ -158,7 +158,8 @@ es.addEventListener('order-status', (e) => console.log(JSON.parse(e.data))); // 
 | `POST /payments/callback/{provider}` `{reference}` | Notification de l'agrégateur (le statut est revérifié auprès de lui) |
 | `POST /payments/fake/{reference}/complete?success=` | Simulation de la validation Mobile Money (passerelle factice uniquement) |
 | `GET /admin/sellers?status=PENDING`, `POST /admin/sellers/{id}/verify` \| `suspend` | Validation des dépôts |
-| `POST /admin/products` | Ajout au référentiel |
+| `POST /admin/products` | Ajout au référentiel, avec son tarif national |
+| `PUT /admin/products/{id}/price` `{refillPrice, purchasePrice}` | Change le tarif national d'un produit (recharge et/ou achat) |
 | `GET /admin/disputes`, `POST /admin/orders/{id}/resolve` `{outcome: RELEASE_TO_SELLER\|REFUND_BUYER, note}` | Litiges |
 | `GET /admin/orders/{id}/ledger` | Mouvements du grand livre d'une commande |
 
@@ -213,7 +214,13 @@ shared     erreurs, GeoPoint, configuration
 - **Référentiel des bouteilles** : en Côte d'Ivoire, la bouteille se reconnaît à sa **société de provenance**
   et à sa **couleur**. Comme plusieurs couleurs circulent pour une même société (flottes grises ou bleues),
   le produit porte une liste de couleurs et une description d'apparence (capsule, nuance). Une recharge
-  correspond à l'échange d'une bouteille vide de même société et de même contenance.
+  correspond à l'échange d'une bouteille vide de même société et de même contenance (sauf dépôt « échange
+  toutes marques », voir plus haut).
+- **Prix national, pas fixé par le dépôt** : le gaz est un produit réglementé — le tarif (recharge et/ou
+  achat) est le même partout et seul le syndicat des gaziers le fait évoluer. Le prix est donc porté par le
+  **produit** du référentiel (`refill_price`/`purchase_price`), pas par l'offre d'un vendeur en particulier ;
+  seul un administrateur le modifie (`PUT /admin/products/{id}/price`). L'offre d'un dépôt ne porte plus que
+  son stock et s'il l'affiche aux acheteurs.
 
 ### Cycle de vie d'une commande
 
@@ -237,6 +244,9 @@ CANCELLED : par l'acheteur avant paiement ; par le vendeur avant expédition (re
 
 - **Référentiel** : couleurs et sociétés renseignées d'après les indications reçues. Il reste à confirmer les
   contenances réellement commercialisées par chaque société (6 kg et 12,5 kg ont été supposées partout).
+- **Tarifs nationaux de démo** : la migration qui a introduit le prix au niveau du produit (plutôt que de
+  l'offre) a repris le prix le plus fréquent observé dans les données de démo comme valeur de départ. À
+  remplacer par les tarifs réellement homologués par le syndicat des gaziers avant toute mise en production.
 - **Paiement réel** : brancher CinetPay ou PayDunya derrière `PaymentGateway` (vérification de signature des
   notifications), puis le reversement Mobile Money des soldes vendeurs (le grand livre tient déjà ces soldes).
 - **SMS réel** : brancher un fournisseur derrière `SmsSender`.

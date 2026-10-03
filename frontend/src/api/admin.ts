@@ -21,10 +21,20 @@ export interface AdminProductInput {
   bottleColors?: string[];
   appearance?: string;
   capacityGrams?: number;
+  refillPrice?: number;
+  purchasePrice?: number;
 }
 
 export function createProduct(input: AdminProductInput) {
   return apiFetch<ProductView>('/admin/products', { method: 'POST', body: input });
+}
+
+/** Tarif national (recharge et/ou achat), par exemple quand le syndicat des gaziers change le prix officiel. */
+export function updateProductPrice(productId: string, refillPrice?: number, purchasePrice?: number) {
+  return apiFetch<ProductView>(`/admin/products/${productId}/price`, {
+    method: 'PUT',
+    body: { refillPrice, purchasePrice },
+  });
 }
 
 export function disputedOrders() {

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,8 +18,10 @@ import ci.allogaz.catalog.application.CatalogQueryService;
 import ci.allogaz.catalog.application.CatalogViews.ProductView;
 import ci.allogaz.catalog.application.SellerProfileService;
 import ci.allogaz.catalog.domain.VerificationStatus;
+import ci.allogaz.catalog.infrastructure.web.CatalogDtos.ProductPriceRequest;
 import ci.allogaz.catalog.infrastructure.web.CatalogDtos.ProductRequest;
 import ci.allogaz.catalog.infrastructure.web.CatalogDtos.SellerProfileResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -54,6 +57,13 @@ public class AdminCatalogController {
     @ResponseStatus(HttpStatus.CREATED)
     public ProductView createProduct(@Valid @RequestBody ProductRequest r) {
         return catalog.createProduct(r.categorySlug(), r.name(), r.brand(), r.company(), r.bottleColors(), r.appearance(),
-                r.capacityGrams());
+                r.capacityGrams(), r.refillPrice(), r.purchasePrice());
+    }
+
+    @PutMapping("/products/{productId}/price")
+    @Operation(summary = "Met à jour le tarif national d'un produit (recharge et/ou achat), par exemple quand "
+            + "le syndicat des gaziers annonce un nouveau prix officiel. Aucun dépôt ne peut le modifier.")
+    public ProductView updatePrice(@PathVariable UUID productId, @Valid @RequestBody ProductPriceRequest r) {
+        return catalog.updateProductPrice(productId, r.refillPrice(), r.purchasePrice());
     }
 }

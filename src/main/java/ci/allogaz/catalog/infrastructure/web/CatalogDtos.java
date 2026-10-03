@@ -71,8 +71,8 @@ public final class CatalogDtos {
         }
     }
 
-    public record OfferRequest(@Positive Long refillPrice, @Positive Long purchasePrice,
-                               @PositiveOrZero int stock, Boolean active) {
+    /** Le prix n'est pas ici : il est national et réglementé (voir {@link ProductRequest}/{@link ProductPriceRequest}). */
+    public record OfferRequest(@PositiveOrZero int stock, Boolean active) {
     }
 
     public record OfferResponse(UUID id, UUID sellerId, UUID productId, String productName, String brand,
@@ -83,8 +83,8 @@ public final class CatalogDtos {
         static OfferResponse from(OfferDetails d) {
             return new OfferResponse(d.offer().id(), d.offer().sellerId(), d.product().id(), d.product().name(),
                     d.product().brand(), d.product().company(), d.product().bottleColors(), d.product().appearance(),
-                    d.product().capacityGrams(), d.offer().refillPrice(),
-                    d.offer().purchasePrice(), d.offer().stock(), d.offer().active());
+                    d.product().capacityGrams(), d.product().refillPrice(),
+                    d.product().purchasePrice(), d.offer().stock(), d.offer().active());
         }
     }
 
@@ -94,6 +94,11 @@ public final class CatalogDtos {
     public record ProductRequest(@NotBlank String categorySlug, @NotBlank @Size(max = 150) String name,
                                  @Size(max = 80) String brand, @Size(max = 120) String company,
                                  List<@Size(max = 40) String> bottleColors, @Size(max = 255) String appearance,
-                                 @Positive Integer capacityGrams) {
+                                 @Positive Integer capacityGrams, @Positive Long refillPrice,
+                                 @Positive Long purchasePrice) {
+    }
+
+    /** Mise à jour du tarif national d'un produit existant (administrateur uniquement). */
+    public record ProductPriceRequest(@Positive Long refillPrice, @Positive Long purchasePrice) {
     }
 }

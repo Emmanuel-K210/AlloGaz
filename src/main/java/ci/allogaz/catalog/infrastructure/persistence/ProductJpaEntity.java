@@ -39,6 +39,13 @@ class ProductJpaEntity {
     @Column(name = "capacity_grams")
     Integer capacityGrams;
 
+    /** Tarif national (F CFA), réglementé : non modifiable par le vendeur. */
+    @Column(name = "refill_price")
+    Long refillPrice;
+
+    @Column(name = "purchase_price")
+    Long purchasePrice;
+
     @Column(nullable = false)
     boolean active;
 }

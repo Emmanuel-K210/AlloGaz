@@ -316,10 +316,12 @@ class OrderWorkflowTest extends AbstractIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON).content("{\"code\":\"" + code + "\"}"));
     }
 
+    /** Le vendeur ne peut plus fixer le prix : seul un administrateur change le tarif national du produit. */
     private void updateOfferPrice(long refillPrice) throws Exception {
-        mvc.perform(put("/api/v1/seller/offers/" + Fixtures.ORYX_12KG).header("Authorization", bearer(seller.user()))
+        mvc.perform(put("/api/v1/admin/products/" + Fixtures.ORYX_12KG + "/price")
+                        .header("Authorization", bearer(fixtures.user(Role.ADMIN)))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"refillPrice\":" + refillPrice + ",\"purchasePrice\":26000,\"stock\":10}"))
+                        .content("{\"refillPrice\":" + refillPrice + ",\"purchasePrice\":26000}"))
                 .andExpect(status().isOk());
     }
 }

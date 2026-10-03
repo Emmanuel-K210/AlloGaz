@@ -20,13 +20,14 @@ public final class CatalogViews {
         }
     }
 
+    /** Le prix (recharge/achat) est national et réglementé : identique chez tous les dépôts. */
     public record ProductView(UUID id, UUID categoryId, String name, String brand, String company,
-                              List<String> bottleColors, String appearance, Integer capacityGrams)
-            implements Serializable {
+                              List<String> bottleColors, String appearance, Integer capacityGrams, Long refillPrice,
+                              Long purchasePrice) implements Serializable {
 
         static ProductView from(Product p) {
             return new ProductView(p.id(), p.categoryId(), p.name(), p.brand(), p.company(), p.bottleColors(),
-                    p.appearance(), p.capacityGrams());
+                    p.appearance(), p.capacityGrams(), p.refillPrice(), p.purchasePrice());
         }
     }
 }

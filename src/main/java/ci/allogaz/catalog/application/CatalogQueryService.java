@@ -60,13 +60,29 @@ public class CatalogQueryService {
     @CacheEvict(cacheNames = PRODUCTS_CACHE, allEntries = true)
     @Transactional
     public ProductView createProduct(String categorySlug, String name, String brand, String company,
-            List<String> bottleColors, String appearance, Integer capacityGrams) {
+            List<String> bottleColors, String appearance, Integer capacityGrams, Long refillPrice,
+            Long purchasePrice) {
         UUID categoryId = categories.findBySlug(categorySlug)
                 .orElseThrow(() -> new NotFoundException("CATEGORY_NOT_FOUND", "Catégorie introuvable.")).id();
         if (name == null || name.isBlank()) {
             throw new DomainException("INVALID_PRODUCT", "Le nom du produit est obligatoire.");
         }
         return ProductView.from(products.save(new Product(UUID.randomUUID(), categoryId, name.strip(), brand, company,
-                bottleColors, appearance, capacityGrams, true)));
+                bottleColors, appearance, capacityGrams, refillPrice, purchasePrice, true)));
+    }
+
+    /**
+     * Met à jour le tarif national d'un produit (recharge et/ou achat), par exemple quand le syndicat des
+     * gaziers annonce un nouveau prix officiel. Ni le vendeur ni l'acheteur ne peuvent l'influencer :
+     * seul un administrateur AlloGaz passe par ici.
+     */
+    @CacheEvict(cacheNames = PRODUCTS_CACHE, allEntries = true)
+    @Transactional
+    public ProductView updateProductPrice(UUID productId, Long refillPrice, Long purchasePrice) {
+        Product current = product(productId);
+        Product updated = new Product(current.id(), current.categoryId(), current.name(), current.brand(),
+                current.company(), current.bottleColors(), current.appearance(), current.capacityGrams(), refillPrice,
+                purchasePrice, current.active());
+        return ProductView.from(products.save(updated));
     }
 }

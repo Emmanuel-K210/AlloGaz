@@ -33,8 +33,8 @@ class JdbcSellerProximityQuery implements SellerProximityQuery {
             o.active AND p.active
             AND (CAST(:capacity AS integer) IS NULL OR p.capacity_grams = CAST(:capacity AS integer))
             AND (CAST(:saleType AS text) IS NULL
-                 OR (CAST(:saleType AS text) = 'REFILL' AND o.refill_price IS NOT NULL)
-                 OR (CAST(:saleType AS text) = 'PURCHASE' AND o.purchase_price IS NOT NULL))
+                 OR (CAST(:saleType AS text) = 'REFILL' AND p.refill_price IS NOT NULL)
+                 OR (CAST(:saleType AS text) = 'PURCHASE' AND p.purchase_price IS NOT NULL))
             AND (
                   s.universal_exchange
                   OR (
@@ -71,7 +71,7 @@ class JdbcSellerProximityQuery implements SellerProximityQuery {
 
     private static final String OFFERS_SQL = """
             SELECT o.id, o.seller_id, p.id AS product_id, p.name, p.brand, p.company, p.bottle_colors, p.appearance,
-                   p.capacity_grams, o.refill_price, o.purchase_price, o.stock
+                   p.capacity_grams, p.refill_price, p.purchase_price, o.stock
             FROM seller_offers o JOIN products p ON p.id = o.product_id JOIN seller_profiles s ON s.id = o.seller_id
             WHERE o.seller_id IN (:sellerIds) AND %s
             ORDER BY o.stock DESC, p.name

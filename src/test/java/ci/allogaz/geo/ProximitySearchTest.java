@@ -49,20 +49,23 @@ class ProximitySearchTest extends AbstractIntegrationTest {
 
     @BeforeAll
     void seed() {
+        // Tarif national de l'Oryx 12,5 kg, fixé une seule fois : tous les dépôts Oryx ci-dessous le partagent.
+        fixtures.setProductPrice(Fixtures.ORYX_12KG, 5_200L, 26_000L);
+
         var proche = fixtures.verifiedSeller("Proche", LAT + 0.0045, LON, 3_000, fixed());
-        fixtures.offer(proche, Fixtures.ORYX_12KG, 5_200L, null, 5);
+        fixtures.offer(proche, Fixtures.ORYX_12KG, 5);
 
         var rupture = fixtures.verifiedSeller("Rupture", LAT + 0.0225, LON, 5_000, fixed());
-        fixtures.offer(rupture, Fixtures.ORYX_12KG, 5_100L, null, 0);
+        fixtures.offer(rupture, Fixtures.ORYX_12KG, 0);
 
         var horsRayon = fixtures.verifiedSeller("Hors rayon", LAT + 0.108, LON, 3_000, fixed());
-        fixtures.offer(horsRayon, Fixtures.ORYX_12KG, 5_000L, 26_000L, 8);
+        fixtures.offer(horsRayon, Fixtures.ORYX_12KG, 8);
 
         var tropLoin = fixtures.verifiedSeller("Trop loin", LAT + 0.54, LON, 3_000, fixed());
-        fixtures.offer(tropLoin, Fixtures.ORYX_12KG, 5_000L, null, 8);
+        fixtures.offer(tropLoin, Fixtures.ORYX_12KG, 8);
 
         var enPause = fixtures.verifiedSeller("En pause", LAT, LON + 0.002, 3_000, fixed());
-        fixtures.offer(enPause, Fixtures.ORYX_12KG, 5_000L, null, 8);
+        fixtures.offer(enPause, Fixtures.ORYX_12KG, 8);
         profiles.setAcceptingOrders(enPause.user().id(), false);
 
         var totalSeulement = fixtures.verifiedSeller("Total seulement", LAT - 0.003, LON, 3_000, fixed());
@@ -75,7 +78,7 @@ class ProximitySearchTest extends AbstractIntegrationTest {
 
         // Fermé à cette heure-ci : seul créneau demain
         var ferme = fixtures.verifiedSeller("Fermé", LAT, LON - 0.002, 3_000, fixed());
-        fixtures.offer(ferme, Fixtures.ORYX_12KG, 5_000L, null, 8);
+        fixtures.offer(ferme, Fixtures.ORYX_12KG, 8);
         var tomorrow = LocalDateTime.now(ZoneId.of("Africa/Abidjan")).plusDays(1).getDayOfWeek();
         profiles.update(ferme.user().id(), new SellerProfileCommand("Fermé", null, new GeoPoint(LAT, LON - 0.002),
                 3_000, List.of(new OpeningSlot(tomorrow, LocalTime.of(0, 0), LocalTime.of(23, 59))), fixed(), false));

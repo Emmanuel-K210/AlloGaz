@@ -3,6 +3,7 @@ import { products as fetchProducts } from '../../api/catalog';
 import * as sellerApi from '../../api/seller';
 import type { Offer, ProductView } from '../../api/types';
 import { ColorChips, ErrorBanner, Spinner } from '../../components/ui';
+import { formatCfa } from '../../utils/format';
 
 export function SellerOffersPage() {
   const [products, setProducts] = useState<ProductView[] | null>(null);
@@ -26,7 +27,10 @@ export function SellerOffersPage() {
   return (
     <div className="container">
       <h1 style={{ fontSize: 24, marginBottom: 4 }}>Mes offres</h1>
-      <p className="muted" style={{ marginBottom: 16 }}>Fixe tes prix et ton stock pour chaque bouteille du référentiel.</p>
+      <p className="muted" style={{ marginBottom: 16 }}>
+        Le prix est national (fixé par l'administration) : tu gères seulement ton stock et si tu affiches
+        l'offre aux acheteurs.
+      </p>
       <div className="stack">
         {products.map((product) => (
           <OfferEditor
@@ -50,26 +54,20 @@ function OfferEditor({
   offer: Offer | null;
   onSaved: (offer: Offer) => void;
 }) {
-  const [refillPrice, setRefillPrice] = useState(offer?.refillPrice?.toString() ?? '');
-  const [purchasePrice, setPurchasePrice] = useState(offer?.purchasePrice?.toString() ?? '');
   const [stock, setStock] = useState(offer?.stock ?? 0);
   const [active, setActive] = useState(offer?.active ?? true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const noPrice = product.refillPrice == null && product.purchasePrice == null;
 
   async function save() {
     setBusy(true);
     setError(null);
     try {
-      const updated = await sellerApi.upsertOffer(product.id, {
-        refillPrice: refillPrice ? Number(refillPrice) : undefined,
-        purchasePrice: purchasePrice ? Number(purchasePrice) : undefined,
-        stock,
-        active,
-      });
+      const updated = await sellerApi.upsertOffer(product.id, { stock, active });
       onSaved(updated);
     } catch {
-      setError('Prix invalide ou enregistrement impossible.');
+      setError('Enregistrement impossible.');
     } finally {
       setBusy(false);
     }
@@ -83,25 +81,30 @@ function OfferEditor({
       </strong>
       {product.bottleColors.length > 0 && <ColorChips colors={product.bottleColors} />}
       {error && <ErrorBanner message={error} />}
-      <div className="row" style={{ flexWrap: 'wrap' }}>
-        <div className="field" style={{ flex: 1, minWidth: 130 }}>
-          <label>Prix recharge</label>
-          <input type="number" min={0} value={refillPrice} onChange={(e) => setRefillPrice(e.target.value)} placeholder="F CFA" />
+      <div className="row" style={{ flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <span className="muted" style={{ fontSize: 14, display: 'block' }}>Prix recharge (national)</span>
+          <strong>{product.refillPrice != null ? formatCfa(product.refillPrice) : '—'}</strong>
         </div>
-        <div className="field" style={{ flex: 1, minWidth: 130 }}>
-          <label>Prix neuve</label>
-          <input type="number" min={0} value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} placeholder="F CFA" />
+        <div>
+          <span className="muted" style={{ fontSize: 14, display: 'block' }}>Prix neuve (national)</span>
+          <strong>{product.purchasePrice != null ? formatCfa(product.purchasePrice) : '—'}</strong>
         </div>
-        <div className="field" style={{ width: 90 }}>
-          <label>Stock</label>
-          <input type="number" min={0} value={stock} onChange={(e) => setStock(Number(e.target.value) || 0)} />
-        </div>
+      </div>
+      {noPrice && (
+        <p className="muted" style={{ fontSize: 13 }}>
+          Tarif pas encore fixé par l'administration : cette offre ne sera pas achetable tant qu'il ne l'est pas.
+        </p>
+      )}
+      <div className="field" style={{ width: 90 }}>
+        <label>Stock</label>
+        <input type="number" min={0} value={stock} onChange={(e) => setStock(Number(e.target.value) || 0)} />
       </div>
       <label className="row" style={{ gap: 6 }}>
         <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
         Offre active (visible des acheteurs)
       </label>
-      <button className="btn secondary" disabled={busy || (!refillPrice && !purchasePrice)} onClick={save}>
+      <button className="btn secondary" disabled={busy} onClick={save}>
         {busy ? 'Enregistrement…' : 'Enregistrer'}
       </button>
     </div>

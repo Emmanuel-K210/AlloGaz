@@ -25,9 +25,8 @@ export function myOffers() {
   return apiFetch<Offer[]>('/seller/offers');
 }
 
+/** Le prix n'est pas ici : il est national et réglementé, le vendeur ne peut fixer que son stock. */
 export interface OfferInput {
-  refillPrice?: number;
-  purchasePrice?: number;
   stock: number;
   active?: boolean;
 }

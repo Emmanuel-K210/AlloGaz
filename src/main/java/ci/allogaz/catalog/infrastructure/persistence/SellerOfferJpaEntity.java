@@ -21,12 +21,6 @@ class SellerOfferJpaEntity {
     @Column(name = "product_id", nullable = false)
     UUID productId;
 
-    @Column(name = "refill_price")
-    Long refillPrice;
-
-    @Column(name = "purchase_price")
-    Long purchasePrice;
-
     @Column(nullable = false)
     int stock;
 

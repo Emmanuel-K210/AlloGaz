@@ -6,62 +6,37 @@ import ci.allogaz.shared.domain.ConflictException;
 import ci.allogaz.shared.domain.DomainException;
 
 /**
- * Offre d'un vendeur sur un produit : prix de recharge et/ou prix d'achat (F CFA entiers) et stock
- * de bouteilles pleines. La version sert au verrouillage optimiste lors des décréments concurrents.
+ * Offre d'un vendeur sur un produit : son stock de bouteilles pleines et s'il l'affiche aux acheteurs.
+ * Le prix n'est pas ici : il est national et réglementé, porté par {@link Product} (non modifiable par
+ * le vendeur). La version sert au verrouillage optimiste lors des décréments concurrents.
  */
 public class SellerOffer {
 
     private final UUID id;
     private final UUID sellerId;
     private final UUID productId;
-    private Long refillPrice;
-    private Long purchasePrice;
     private int stock;
     private boolean active;
     private final long version;
 
-    public SellerOffer(UUID id, UUID sellerId, UUID productId, Long refillPrice, Long purchasePrice, int stock,
-            boolean active, long version) {
+    public SellerOffer(UUID id, UUID sellerId, UUID productId, int stock, boolean active, long version) {
         this.id = id;
         this.sellerId = sellerId;
         this.productId = productId;
         this.version = version;
-        this.active = active;
-        update(refillPrice, purchasePrice, stock, active);
+        update(stock, active);
     }
 
-    public static SellerOffer create(UUID sellerId, UUID productId, Long refillPrice, Long purchasePrice, int stock) {
-        return new SellerOffer(UUID.randomUUID(), sellerId, productId, refillPrice, purchasePrice, stock, true, 0);
+    public static SellerOffer create(UUID sellerId, UUID productId, int stock) {
+        return new SellerOffer(UUID.randomUUID(), sellerId, productId, stock, true, 0);
     }
 
-    public final void update(Long refillPrice, Long purchasePrice, int stock, boolean active) {
-        if (refillPrice == null && purchasePrice == null) {
-            throw new DomainException("INVALID_OFFER", "Indiquez au moins un prix (recharge ou achat).");
-        }
-        if ((refillPrice != null && refillPrice <= 0) || (purchasePrice != null && purchasePrice <= 0)) {
-            throw new DomainException("INVALID_OFFER", "Les prix doivent être des montants positifs en F CFA.");
-        }
+    public final void update(int stock, boolean active) {
         if (stock < 0) {
             throw new DomainException("INVALID_OFFER", "Le stock ne peut pas être négatif.");
         }
-        this.refillPrice = refillPrice;
-        this.purchasePrice = purchasePrice;
         this.stock = stock;
         this.active = active;
-    }
-
-    public boolean offers(OfferType type) {
-        return active && priceOrNull(type) != null;
-    }
-
-    public long priceFor(OfferType type) {
-        Long price = active ? priceOrNull(type) : null;
-        if (price == null) {
-            throw new DomainException("OFFER_UNAVAILABLE",
-                    type == OfferType.REFILL ? "Ce dépôt ne propose pas la recharge de ce produit."
-                            : "Ce dépôt ne vend pas ce produit.");
-        }
-        return price;
     }
 
     public void decrementStock(int quantity) {
@@ -74,10 +49,6 @@ public class SellerOffer {
         stock -= quantity;
     }
 
-    private Long priceOrNull(OfferType type) {
-        return type == OfferType.REFILL ? refillPrice : purchasePrice;
-    }
-
     public UUID id() {
         return id;
     }
@@ -88,14 +59,6 @@ public class SellerOffer {
 
     public UUID productId() {
         return productId;
-    }
-
-    public Long refillPrice() {
-        return refillPrice;
-    }
-
-    public Long purchasePrice() {
-        return purchasePrice;
     }
 
     public int stock() {
