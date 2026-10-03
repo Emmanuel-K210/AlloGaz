@@ -16,9 +16,15 @@ export function CheckoutPage() {
   const [seller, setSeller] = useState<PublicSeller | null>(null);
   const [fulfillment, setFulfillment] = useState<Fulfillment>('DELIVERY');
   const [address, setAddress] = useState('');
-  const { coords } = useGeolocation();
+  const { coords, locate, locating, denied } = useGeolocation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    locate();
+    // on ne relance pas automatiquement : le bouton "Localiser à nouveau" permet de réessayer
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!cart.sellerId) return;
@@ -121,6 +127,16 @@ export function CheckoutPage() {
               placeholder="Quartier, rue, repère…"
               required
             />
+            <p className="muted" style={{ fontSize: 13 }}>
+              {locating
+                ? 'Localisation en cours…'
+                : denied
+                  ? "Position approximative (centre d'Abidjan) : autorise la localisation pour éviter un refus si tu es en dehors de la zone."
+                  : 'Position actuelle utilisée pour vérifier la zone de livraison.'}{' '}
+              <button type="button" className="btn ghost" style={{ padding: '2px 8px', fontSize: 13 }} onClick={locate}>
+                📍 Localiser à nouveau
+              </button>
+            </p>
           </div>
         )}
 
